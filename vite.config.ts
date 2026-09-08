@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const base = process.env.GITHUB_ACTIONS === 'true' ? '/hoa-don-mobile/' : '/'
+const base = process.env.GITHUB_ACTIONS === 'true' ? '/hoa-don-dien-thoai-2026/' : '/'
 
 export default defineConfig({
   base,
