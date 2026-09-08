@@ -9,7 +9,7 @@ function readSettings(): AppSettings {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return defaultSettings
     const parsed = JSON.parse(saved) as Partial<AppSettings>
-    return { exchangeRate: parsed.exchangeRate ?? defaultSettings.exchangeRate, surcharges: { ...defaultSettings.surcharges, ...parsed.surcharges }, itemOperatingCosts: { ...defaultSettings.itemOperatingCosts, ...parsed.itemOperatingCosts }, apiUrl: parsed.apiUrl ?? '' }
+    return { exchangeRate: parsed.exchangeRate ?? defaultSettings.exchangeRate, surcharges: { ...defaultSettings.surcharges, ...parsed.surcharges }, itemOperatingCosts: { ...defaultSettings.itemOperatingCosts, ...parsed.itemOperatingCosts }, apiUrl: parsed.apiUrl || defaultSettings.apiUrl }
   } catch { return defaultSettings }
 }
 

@@ -4,7 +4,7 @@ export const defaultSettings: AppSettings = {
   exchangeRate: 3900,
   surcharges: { te: 14000, nl: 14000, bte: 14000, bnl: 14000, blo: 14000 },
   itemOperatingCosts: { te: 5000, nl: 7000, bte: 6000, bnl: 8000, blo: 10000 },
-  apiUrl: '',
+  apiUrl: 'https://script.google.com/macros/s/AKfycbwe6cegJjG4t1TU6kDLUPLjRYhEoD18pLN9OLXr7sro4aeZu_-Un-Vqet82lFhlPi4LDA/exec',
 }
 
 export const itemTypeLabels = {
