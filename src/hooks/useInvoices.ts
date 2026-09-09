@@ -116,7 +116,7 @@ export function useInvoices() {
       return { ...invoice, items: calculatedItems, subtotal, paid, remaining, chinaCostTotal, itemOperatingCostTotal, profit: subtotal - chinaCostTotal - (invoice.operatingCostTotal || 0) - itemOperatingCostTotal }
     }))
     setPayments(prev => prev.map(payment => payment.invoiceId === invoiceId && payment.paymentMethod === 'cod' && payment.kind === 'payment'
-      ? { ...payment, amount: Math.max(0, items.reduce((sum, item) => sum + calculateItem(item, settings).subtotal, 0) - (invoices.find(invoice => invoice.invoiceId === invoiceId)?.deposit ?? 0) }
+      ? { ...payment, amount: Math.max(0, items.reduce((sum, item) => sum + calculateItem(item, settings).subtotal, 0) - (invoices.find(invoice => invoice.invoiceId === invoiceId)?.deposit ?? 0)) }
       : payment))
   }, [invoices, setInvoices, setPayments])
 
