@@ -49,6 +49,19 @@ export interface CustomerDebt {
   updatedAt: string
 }
 
+/** An auditable increase or decrease of a manually recorded customer debt. */
+export interface CustomerDebtTransaction {
+  transactionId: string
+  customerId: string
+  debtId: string
+  amount: number
+  direction: 'debt' | 'payment'
+  transactionDate: string
+  paymentMethod?: 'transfer' | 'cash'
+  note: string
+  createdAt: string
+}
+
 export interface SupplierPayment {
   paymentId: string
   amount: number

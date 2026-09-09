@@ -6,6 +6,7 @@ const STORAGE_TO_SHEET: Record<string, string> = {
   'hoa-don-invoices': 'HoaDon',
   'hoa-don-payments': 'ThanhToan',
   'hoa-don-customer-debts': 'CongNoKhach',
+  'hoa-don-customer-debt-transactions': 'LichSuCongNoKhach',
   'hoa-don-operating-expenses': 'ChiPhiVanHanh',
   'hoa-don-inventory-products': 'HangTon',
 }
