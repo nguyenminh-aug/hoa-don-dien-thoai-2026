@@ -19,7 +19,7 @@ function createEmptyItem(): InvoiceItemDraft {
   return {
     id: generateId('item'),
     productName: '',
-    quantity: 1,
+    quantity: 0,
     itemType: 'te',
     priceMode: 'ndt',
     originalPrice: 0,
@@ -196,12 +196,9 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
           <span className="count-pill">{items.length}</span>
         </div>
 
-        <div className="invoice-table-scroll">
-          <table className="invoice-table">
-            <thead>
-              <tr><th>STT</th><th>Tên hàng</th><th>Loại</th><th>SL</th><th>Nhập giá</th><th>Giá gốc</th><th>Nguồn</th><th>Đơn giá bán</th><th>Thành tiền</th><th aria-label="Xóa" /></tr>
-            </thead>
-            <tbody>{items.map((item, index) => (
+        <div className="invoice-items-compact">
+          <div>
+            <div>{items.map((item, index) => (
               <InvoiceItemEditor
                 key={item.id}
                 item={item}
@@ -211,8 +208,8 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
                 onChange={updateItem}
                 onRemove={() => removeItem(item.id)}
               />
-            ))}</tbody>
-          </table>
+            ))}</div>
+          </div>
         </div>
 
         <button type="button" className="add-item-btn" onClick={addItem}>

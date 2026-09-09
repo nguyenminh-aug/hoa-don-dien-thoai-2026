@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { InvoiceTotalsSection } from '../components/InvoiceTotalsSection'
+import { InvoiceItemEditor } from '../components/InvoiceItemEditor'
 import { PageHeader } from '../components/PageHeader'
 import { useInvoices } from '../hooks/useInvoices'
-import type { Payment } from '../types/invoice'
+import { useSettings } from '../hooks/useSettings'
+import type { InvoiceItemDraft, Payment } from '../types/invoice'
 import { formatVnd, parseNumber } from '../utils/money'
-import { todayIso } from '../utils/id'
+import { generateId, todayIso } from '../utils/id'
 import { exportInvoiceImage } from '../utils/invoiceImage'
 import { DeleteInvoiceConfirmModal } from '../components/DeleteInvoiceConfirmModal'
 
 interface Props { invoiceId: string; onBack: () => void }
 export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
-  const { invoices, payments, addPayment, markInvoiceBombed, deleteInvoice } = useInvoices(); const [showForm, setShowForm] = useState(false); const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); const [error, setError] = useState(''); const [exporting, setExporting] = useState(false)
+  const { settings } = useSettings()
+  const { invoices, payments, addPayment, reviseInvoice, markInvoiceBombed, deleteInvoice } = useInvoices(); const [showForm, setShowForm] = useState(false); const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); const [editing, setEditing] = useState(false); const [editItems, setEditItems] = useState<InvoiceItemDraft[]>([]); const [error, setError] = useState(''); const [exporting, setExporting] = useState(false)
   const [amount, setAmount] = useState(''); const [date, setDate] = useState(todayIso()); const [method, setMethod] = useState<Payment['paymentMethod']>('transfer'); const [note, setNote] = useState('')
   const invoice = invoices.find(i => i.invoiceId === invoiceId)
+  const totalQuantity = invoice?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0
   const codAmount = invoice?.paymentMethod === 'cod' ? Math.max(0, invoice.subtotal - invoice.deposit) : undefined
   const actualProfit = invoice ? invoice.subtotal - (invoice.chinaCostTotal || 0) - (invoice.operatingCostTotal || 0) - (invoice.itemOperatingCostTotal || 0) : 0
   const inventoryLines = invoice?.items.filter(item => item.fromInventory).map(item => {
@@ -21,9 +25,20 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
     const chinaCost = (item.chinaCostVnd || 0) * item.quantity
     return { item, tienCuu, chinaCost, operatingShare, profit: item.subtotal - chinaCost - tienCuu - operatingShare }
   }) ?? []
+  const openEdit = () => {
+    if (!invoice) return
+    setEditItems(invoice.items.map(item => ({ id: item.itemId, productName: item.productName, quantity: item.quantity, itemType: item.itemType, priceMode: item.priceMode, originalPrice: item.originalPrice, fromInventory: item.fromInventory, saleUnitPrice: item.saleUnitPrice })))
+    setEditing(true); setError('')
+  }
+  const saveEdit = () => {
+    const valid = editItems.filter(item => item.productName.trim())
+    if (!valid.length || valid.some(item => item.quantity <= 0)) return setError('Mỗi mặt hàng cần có tên và số lượng lớn hơn 0.')
+    reviseInvoice(invoiceId, valid, settings); setEditing(false); setError('')
+  }
+  const updateEditItem = (next: InvoiceItemDraft) => setEditItems(previous => previous.map(item => item.id === next.id ? next : item))
   if (!invoice) return <><button className="back-btn" onClick={onBack}>← Quay lại</button><p>Không tìm thấy hóa đơn.</p></>
   const handlePayment = () => { const value = parseNumber(amount); if (!value || value < 0) return setError('Nhập số tiền thanh toán hợp lệ.'); addPayment({ customerId: invoice.customerId || '', invoiceId, amount: value, paymentDate: date, paymentMethod: method, note }); setShowForm(false); setAmount(''); setNote(''); setError('') }
-  const share = async () => { const text = `HÓA ĐƠN\n${invoice.items.map(x=>`${x.productName} x${x.quantity}: ${formatVnd(x.subtotal)}`).join('\n')}\nTổng tiền hàng: ${formatVnd(invoice.subtotal)}\nĐặt cọc: ${formatVnd(invoice.deposit)}\nCòn phải thanh toán: ${formatVnd(invoice.remaining)}`; const canShare = typeof navigator.share === 'function'; if (canShare) await navigator.share({ title: 'Hóa đơn', text }); else await navigator.clipboard?.writeText(text); alert(canShare ? 'Đã mở chia sẻ.' : 'Đã sao chép nội dung hóa đơn.') }
+  const share = async () => { const text = `HÓA ĐƠN\n${invoice.items.map(x=>`${x.productName} x${x.quantity}: ${formatVnd(x.subtotal)}`).join('\n')}\nTổng số lượng: ${totalQuantity} đôi\nTổng tiền hàng: ${formatVnd(invoice.subtotal)}\nĐặt cọc: ${formatVnd(invoice.deposit)}\nCòn phải thanh toán: ${formatVnd(invoice.remaining)}`; const canShare = typeof navigator.share === 'function'; if (canShare) await navigator.share({ title: 'Hóa đơn', text }); else await navigator.clipboard?.writeText(text); alert(canShare ? 'Đã mở chia sẻ.' : 'Đã sao chép nội dung hóa đơn.') }
   const exportImage = async () => { try { setExporting(true); const result = await exportInvoiceImage(invoice); alert(result === 'shared' ? 'Đã mở bảng chia sẻ ảnh.' : 'Đã tải ảnh hóa đơn PNG.') } catch (reason) { if ((reason as Error).name !== 'AbortError') setError('Không thể xuất ảnh. Vui lòng thử lại.') } finally { setExporting(false) } }
   const markBombed = () => { if (window.confirm('Đánh dấu khách bom hàng? Toàn bộ mặt hàng sẽ chuyển vào Hàng tồn và hóa đơn không còn tính công nợ.')) markInvoiceBombed(invoiceId) }
   const removeInvoice = () => { deleteInvoice(invoiceId); onBack() }
@@ -31,6 +46,9 @@ export function InvoiceDetailPage({ invoiceId, onBack }: Props) {
   return <><button className="back-btn" onClick={onBack}>← Quay lại</button><PageHeader title="Chi tiết hóa đơn" subtitle={`${invoice.invoiceId} · ${invoice.invoiceDate}`} />
     <section className="form-card invoice-customer"><strong>{invoice.customerName}</strong><span>{invoice.customerAddress || 'Chưa có địa chỉ'}</span><span>Thanh toán: {invoice.paymentMethod === 'transfer' ? 'Chuyển khoản' : 'COD'}</span></section>
     <section className="form-card"><div className="form-card-heading"><h2>Danh sách hàng</h2></div>{invoice.items.map(item => <div className="invoice-line" key={item.itemId}><div><strong>{item.productName}</strong><span>{item.quantity} đôi × {formatVnd(item.unitPrice)}</span></div><strong>{formatVnd(item.subtotal)}</strong></div>)}</section>
+    {!editing && <button className="secondary-button" onClick={openEdit}>Sửa hóa đơn</button>}
+    {editing && <section className="form-card edit-invoice-card"><div className="form-card-heading"><h2>Sửa mặt hàng</h2><span className="count-pill">{editItems.length}</span></div><div className="invoice-items-compact">{editItems.map((item, index) => <InvoiceItemEditor key={item.id} item={item} settings={settings} index={index} isRemovable={editItems.length > 1} onChange={updateEditItem} onRemove={() => setEditItems(previous => previous.length > 1 ? previous.filter(current => current.id !== item.id) : previous)} />)}</div><button type="button" className="add-item-btn" onClick={() => setEditItems(previous => [...previous, { id: generateId('item'), productName: '', quantity: 0, itemType: 'te', priceMode: 'ndt', originalPrice: 0 }])}>+ Thêm mặt hàng</button>{error && <div className="error-banner">{error}</div>}<div className="edit-invoice-actions"><button type="button" className="secondary-button" onClick={() => { setEditing(false); setError('') }}>Hủy</button><button type="button" className="primary-button" onClick={saveEdit}>Lưu thay đổi</button></div></section>}
+    <section className="invoice-quantity-summary"><span>Tổng số lượng</span><strong>{totalQuantity} đôi</strong></section>
     <InvoiceTotalsSection subtotal={invoice.subtotal} breakdown={{ deposit: invoice.deposit, paid: invoice.paid, remaining: invoice.remaining, codAmount }} />
     <section className="form-card profit-card"><div className="form-card-heading"><h2>Lợi nhuận</h2>{invoice.status === 'bombed' && <span className="bombed-pill">Khách bom hàng</span>}</div><div className="totals-row light"><span>Doanh thu</span><strong>{formatVnd(invoice.subtotal)}</strong></div><div className="totals-row light"><span>Tiền gốc Trung Quốc</span><strong>-{formatVnd(invoice.chinaCostTotal || 0)}</strong></div><div className="totals-row light"><span>Tiền cửu</span><strong>-{formatVnd(invoice.itemOperatingCostTotal || 0)}</strong></div><div className="totals-row light"><span>Chi phí vận hành hóa đơn</span><strong>-{formatVnd(invoice.operatingCostTotal || 0)}</strong></div><div className="totals-row profit-row"><span>{invoice.remaining > 0 ? 'Lợi nhuận dự kiến (còn nợ)' : 'Lợi nhuận đã tính'}</span><strong>{invoice.remaining > 0 ? formatVnd(0) : formatVnd(invoice.profit ?? invoice.subtotal - (invoice.chinaCostTotal || 0) - (invoice.operatingCostTotal || 0) - (invoice.itemOperatingCostTotal || 0))}</strong></div>{invoice.remaining > 0 && <span className="profit-note">Hóa đơn còn nợ nên chưa được cộng vào lợi nhuận.</span>}</section>
     {inventoryLines.length > 0 && <section className="form-card inventory-profit-card"><div className="form-card-heading"><h2>Lãi/lỗ hàng tồn</h2><span>Đã gồm Tiền cửu</span></div>{inventoryLines.map(({ item, chinaCost, tienCuu, operatingShare, profit }) => <div className="inventory-profit-line" key={item.itemId}><div><strong>{item.productName} × {item.quantity}</strong><span>Thu {formatVnd(item.subtotal)} · Gốc {formatVnd(chinaCost)} · Cửu {formatVnd(tienCuu)} · VH {formatVnd(operatingShare)}</span></div><strong className={profit < 0 ? 'loss-value' : 'profit-value'}>{formatVnd(profit)}</strong></div>)}</section>}

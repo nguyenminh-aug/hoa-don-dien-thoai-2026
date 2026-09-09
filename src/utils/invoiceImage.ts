@@ -21,7 +21,7 @@ export async function createInvoiceImage(invoice: Invoice): Promise<Blob> {
   const measureCanvas = document.createElement('canvas'); const measure = measureCanvas.getContext('2d')!
   measure.font = '600 30px Arial'
   const itemLines = invoice.items.map(item => wrapText(measure, item.productName, 420))
-  const height = 330 + itemLines.reduce((sum, lines) => sum + Math.max(LINE_HEIGHT, lines.length * 36) + 34, 0) + 270
+  const height = 330 + itemLines.reduce((sum, lines) => sum + Math.max(LINE_HEIGHT, lines.length * 36) + 34, 0) + 334
   const canvas = document.createElement('canvas'); canvas.width = WIDTH; canvas.height = height
   const context = canvas.getContext('2d')!; context.fillStyle = '#ffffff'; context.fillRect(0, 0, WIDTH, height)
   context.fillStyle = '#2563eb'; context.fillRect(0, 0, WIDTH, 190)
@@ -37,8 +37,9 @@ export async function createInvoiceImage(invoice: Invoice): Promise<Blob> {
     context.font = '400 27px Arial'; context.fillText(String(item.quantity), 610, y); context.fillText(formatVnd(item.unitPrice), 690, y); context.textAlign = 'right'; context.font = '700 27px Arial'; context.fillText(formatVnd(item.subtotal), WIDTH-PADDING, y); context.textAlign = 'left'
     y += Math.max(LINE_HEIGHT, lines.length * 36) + 34; context.strokeStyle = '#eef2f7'; context.beginPath(); context.moveTo(PADDING,y-16); context.lineTo(WIDTH-PADDING,y-16); context.stroke()
   })
-  const totalRows = [['Tổng tiền hàng', formatVnd(invoice.subtotal)], ['Đặt cọc', `-${formatVnd(invoice.deposit)}`], ['Còn phải thanh toán', formatVnd(invoice.remaining)]]
-  y += 20; totalRows.forEach(([label, value], index) => { context.fillStyle = index === 2 ? '#166534' : '#475569'; context.font = index === 2 ? '700 34px Arial' : '400 29px Arial'; context.fillText(label, PADDING, y); context.textAlign = 'right'; context.fillText(value, WIDTH-PADDING, y); context.textAlign = 'left'; y += 64 })
+  const totalQuantity = invoice.items.reduce((sum, item) => sum + item.quantity, 0)
+  const totalRows = [['Tổng số lượng', `${totalQuantity} đôi`], ['Tổng tiền hàng', formatVnd(invoice.subtotal)], ['Đặt cọc', `-${formatVnd(invoice.deposit)}`], ['Còn phải thanh toán', formatVnd(invoice.remaining)]]
+  y += 20; totalRows.forEach(([label, value], index) => { const isRemaining = index === totalRows.length - 1; context.fillStyle = isRemaining ? '#166534' : '#475569'; context.font = isRemaining ? '700 34px Arial' : '400 29px Arial'; context.fillText(label, PADDING, y); context.textAlign = 'right'; context.fillText(value, WIDTH-PADDING, y); context.textAlign = 'left'; y += 64 })
   return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Không thể tạo ảnh')), 'image/png'))
 }
 

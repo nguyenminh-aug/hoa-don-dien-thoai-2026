@@ -17,7 +17,7 @@ export function SettingsPage() {
   const [surchargeInputs, setSurchargeInputs] = useState<Record<ItemType, string>>(() => {
     const result = {} as Record<ItemType, string>
     for (const type of ITEM_TYPES) {
-      result[type] = String(settings.surcharges[type])
+      result[type] = String(settings.surcharges[type] / 1000)
     }
     return result
   })
@@ -38,7 +38,7 @@ export function SettingsPage() {
     const surcharges = {} as Record<ItemType, number>
     const itemOperatingCosts = {} as Record<ItemType, number>
     for (const type of ITEM_TYPES) {
-      surcharges[type] = Math.max(0, Math.round(parseNumber(surchargeInputs[type])))
+      surcharges[type] = Math.max(0, Math.round(parseNumber(surchargeInputs[type]) * 1000))
       itemOperatingCosts[type] = Math.max(0, Math.round(parseNumber(itemCostInputs[type])))
     }
     setSettings({ exchangeRate, surcharges, itemOperatingCosts, apiUrl: apiUrl.trim() })

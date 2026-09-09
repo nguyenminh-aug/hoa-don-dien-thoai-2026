@@ -104,11 +104,27 @@ export function useInvoices() {
     [setInvoices, setPayments],
   )
 
+  const reviseInvoice = useCallback((invoiceId: string, items: InvoiceItemDraft[], settings: AppSettings) => {
+    setInvoices(prev => prev.map(invoice => {
+      if (invoice.invoiceId !== invoiceId) return invoice
+      const calculatedItems = items.map(item => ({ ...calculateItem(item, settings), itemId: item.id }))
+      const subtotal = calculateInvoiceTotalFromItems(calculatedItems)
+      const paid = invoice.paymentMethod === 'cod' ? Math.max(0, subtotal - invoice.deposit) : Math.min(invoice.paid, Math.max(0, subtotal - invoice.deposit))
+      const remaining = Math.max(0, subtotal - invoice.deposit - paid)
+      const chinaCostTotal = calculateChinaCostTotal(calculatedItems)
+      const itemOperatingCostTotal = calculateItemOperatingCostTotal(calculatedItems)
+      return { ...invoice, items: calculatedItems, subtotal, paid, remaining, chinaCostTotal, itemOperatingCostTotal, profit: subtotal - chinaCostTotal - (invoice.operatingCostTotal || 0) - itemOperatingCostTotal }
+    }))
+    setPayments(prev => prev.map(payment => payment.invoiceId === invoiceId && payment.paymentMethod === 'cod' && payment.kind === 'payment'
+      ? { ...payment, amount: Math.max(0, items.reduce((sum, item) => sum + calculateItem(item, settings).subtotal, 0) - (invoices.find(invoice => invoice.invoiceId === invoiceId)?.deposit ?? 0) }
+      : payment))
+  }, [invoices, setInvoices, setPayments])
+
   const markInvoiceBombed = useCallback((invoiceId: string) => {
     setInvoices((prev) => prev.map((invoice) => invoice.invoiceId === invoiceId
       ? { ...invoice, status: 'bombed', bombedAt: new Date().toISOString(), remaining: 0 }
       : invoice))
   }, [setInvoices])
 
-  return { invoices, payments, createInvoice, addPayment, updateInvoice, deleteInvoice, markInvoiceBombed }
+  return { invoices, payments, createInvoice, addPayment, updateInvoice, reviseInvoice, deleteInvoice, markInvoiceBombed }
 }
