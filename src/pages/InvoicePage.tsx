@@ -33,6 +33,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
   const { customers, addCustomer } = useCustomers()
 
   const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
   const [customerAddress, setCustomerAddress] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('transfer')
   const [customerId, setCustomerId] = useState<string | null>(null)
@@ -66,20 +67,27 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
     setItems((prev) => [...prev, createEmptyItem()])
   }
 
-  const handleSelectCustomer = (customerIdValue: string, name: string, address: string) => {
-    setCustomerId(customerIdValue)
-    setCustomerName(name)
-    setCustomerAddress(address)
+  const handleSelectCustomer = (customer: typeof customers[number] | null) => {
+    if (!customer) {
+      handleClearCustomer()
+      return
+    }
+    setCustomerId(customer.customerId)
+    setCustomerName(customer.name)
+    setCustomerPhone(customer.phone ?? '')
+    setCustomerAddress(customer.address)
   }
 
   const handleClearCustomer = () => {
     setCustomerId(null)
     setCustomerName('')
+    setCustomerPhone('')
     setCustomerAddress('')
   }
 
   const resetForm = () => {
     setCustomerName('')
+    setCustomerPhone('')
     setCustomerAddress('')
     setPaymentMethod('transfer')
     setCustomerId(null)
@@ -115,7 +123,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
 
     let resolvedCustomerId = customerId
     if (!resolvedCustomerId) {
-      const created = addCustomer(customerName, customerAddress)
+      const created = addCustomer(customerName, customerAddress, customerPhone)
       resolvedCustomerId = created.customerId
     }
 
@@ -124,6 +132,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
         invoiceId: invoiceCode,
         customerId: resolvedCustomerId,
         customerName,
+        customerPhone,
         customerAddress,
         paymentMethod,
         invoiceDate,
@@ -152,24 +161,23 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
 
       <InvoiceCustomerSection
         customerName={customerName}
+        customerPhone={customerPhone}
         customerAddress={customerAddress}
         paymentMethod={paymentMethod}
         selectedCustomerId={customerId}
         customers={customers}
         onNameChange={setCustomerName}
+        onPhoneChange={setCustomerPhone}
         onAddressChange={setCustomerAddress}
         onPaymentMethodChange={setPaymentMethod}
-        onSelectCustomer={(customer) =>
-          handleSelectCustomer(customer.customerId, customer.name, customer.address)
-        }
-        onClearCustomer={handleClearCustomer}
+        onSelectCustomer={handleSelectCustomer}
       />
 
       <section className="form-card">
         <div className="form-card-heading">
           <h2>Mã hóa đơn & ngày</h2>
         </div>
-        <div className="field-row">
+        <div className="invoice-meta-grid">
           <label className="field">
             <span className="field-label">Mã hóa đơn</span>
             <input value={invoiceCode} readOnly />
@@ -187,17 +195,24 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
           <span className="count-pill">{items.length}</span>
         </div>
 
-        {items.map((item, index) => (
-          <InvoiceItemEditor
-            key={item.id}
-            item={item}
-            settings={settings}
-            index={index}
-            isRemovable={items.length > 1}
-            onChange={updateItem}
-            onRemove={() => removeItem(item.id)}
-          />
-        ))}
+        <div className="invoice-table-scroll">
+          <table className="invoice-table">
+            <thead>
+              <tr><th>STT</th><th>Tên hàng</th><th>Loại</th><th>SL</th><th>Nhập giá</th><th>Giá gốc</th><th>Nguồn</th><th>Đơn giá bán</th><th>Thành tiền</th><th aria-label="Xóa" /></tr>
+            </thead>
+            <tbody>{items.map((item, index) => (
+              <InvoiceItemEditor
+                key={item.id}
+                item={item}
+                settings={settings}
+                index={index}
+                isRemovable={items.length > 1}
+                onChange={updateItem}
+                onRemove={() => removeItem(item.id)}
+              />
+            ))}</tbody>
+          </table>
+        </div>
 
         <button type="button" className="add-item-btn" onClick={addItem}>
           <Icon name="plus" size={18} />

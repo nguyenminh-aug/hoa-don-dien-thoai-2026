@@ -11,6 +11,7 @@ export interface CreateInvoiceInput {
   invoiceId: string
   customerId: string | null
   customerName: string
+  customerPhone?: string
   customerAddress: string
   paymentMethod: Invoice['paymentMethod']
   invoiceDate: string
@@ -46,6 +47,7 @@ export function useInvoices() {
         invoiceId: input.invoiceId,
         customerId: input.customerId,
         customerName: input.customerName.trim(),
+        customerPhone: input.customerPhone?.trim() ?? '',
         customerAddress: input.customerAddress.trim(),
         paymentMethod: input.paymentMethod,
         invoiceDate: input.invoiceDate,

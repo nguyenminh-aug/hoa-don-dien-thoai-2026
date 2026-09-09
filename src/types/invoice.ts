@@ -31,6 +31,7 @@ export interface OperatingExpense {
 export interface Customer {
   customerId: string
   name: string
+  phone?: string
   address: string
   createdAt: string
   updatedAt: string
@@ -111,6 +112,7 @@ export interface Invoice {
   invoiceId: string
   customerId: string | null
   customerName: string
+  customerPhone?: string
   customerAddress: string
   paymentMethod: PaymentMethod
   invoiceDate: string

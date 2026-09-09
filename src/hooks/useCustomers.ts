@@ -9,11 +9,12 @@ export function useCustomers() {
   const [customers, setCustomers] = useLocalStorage<Customer[]>(STORAGE_KEY, [])
 
   const addCustomer = useCallback(
-    (name: string, address: string): Customer => {
+    (name: string, address: string, phone = ''): Customer => {
       const now = new Date().toISOString()
       const customer: Customer = {
         customerId: generateId('kh'),
         name: name.trim(),
+        phone: phone.trim(),
         address: address.trim(),
         createdAt: now,
         updatedAt: now,
@@ -31,6 +32,7 @@ export function useCustomers() {
       return customers.filter(
         (customer) =>
           customer.name.toLowerCase().includes(normalized) ||
+          (customer.phone ?? '').includes(normalized) ||
           customer.address.toLowerCase().includes(normalized),
       )
     },
