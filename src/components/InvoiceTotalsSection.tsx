@@ -7,6 +7,7 @@ interface InvoiceTotalsSectionProps {
     deposit: number
     paid: number
     remaining: number
+    codAmount?: number
   }
 }
 
@@ -24,6 +25,10 @@ export function InvoiceTotalsSection({ subtotal, deposit = 0, breakdown }: Invoi
             <span>Đặt cọc</span>
             <strong>-{formatVnd(breakdown?.deposit ?? deposit)}</strong>
           </div>
+          {breakdown?.codAmount !== undefined && <div className="totals-row cod">
+            <span>COD cần thu khi giao</span>
+            <strong>{formatVnd(breakdown.codAmount)}</strong>
+          </div>}
           {breakdown && <div className="totals-row paid">
             <span>Đã thanh toán</span>
             <strong>-{formatVnd(breakdown.paid)}</strong>

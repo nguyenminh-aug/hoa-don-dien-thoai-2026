@@ -45,6 +45,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
   const [successCode, setSuccessCode] = useState<string | null>(null)
 
   const subtotal = useMemo(() => calculateInvoiceTotal(items, settings), [items, settings])
+  const codAmount = paymentMethod === 'cod' ? Math.max(0, subtotal - deposit) : undefined
 
   const updateItem = (next: InvoiceItemDraft) => {
     setItems((prev) => prev.map((item) => {
@@ -228,7 +229,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
         </label>
       </section>
 
-      <InvoiceTotalsSection subtotal={subtotal} deposit={deposit} breakdown={{ deposit, paid: paymentMethod === 'cod' ? Math.max(0, subtotal - deposit) : 0, remaining: paymentMethod === 'cod' ? 0 : Math.max(0, subtotal - deposit) }} />
+      <InvoiceTotalsSection subtotal={subtotal} deposit={deposit} breakdown={{ deposit, paid: paymentMethod === 'cod' ? Math.max(0, subtotal - deposit) : 0, remaining: paymentMethod === 'cod' ? 0 : Math.max(0, subtotal - deposit), codAmount }} />
 
       {errors.length > 0 && (
         <div className="error-banner" role="alert">
