@@ -124,3 +124,7 @@ h1, h2, p { margin: 0; } h1 { font-size: 23px; letter-spacing: -0.5px; line-heig
 .confirm-modal h2 { font-size: 18px; }.confirm-modal p { margin-top: 10px; color: #5e6d83; font-size: 14px; line-height: 1.5; }.confirm-modal-note { padding: 10px; border-radius: 10px; color: #9f1239 !important; background: #fff1f2; font-size: 12px !important; }.confirm-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }.confirm-modal-actions button { width: 100%; min-height: 44px; margin: 0; border-radius: 10px; font-size: 14px; }.confirm-cancel-button { background: #f6f9ff; }.danger-button { border: 0; color: #fff; background: #dc2626; font-weight: 700; }
 
 .invoice-item-grid.row-two { grid-template-columns: .82fr 1fr 1fr 1fr; }
+
+.customer-card { cursor: pointer; }
+.customer-contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.customer-contact-form input { min-width: 0; min-height: 32px; padding: 0 8px; border: 1px solid #c9d9ed; border-radius: 6px; font: inherit; font-size: 12px; }
