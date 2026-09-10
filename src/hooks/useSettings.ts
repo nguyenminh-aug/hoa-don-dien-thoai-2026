@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { defaultSettings } from '../config/settings'
-import { ITEM_TYPES, type AppSettings } from '../types/invoice'
+import { ITEM_TYPES, type AppSettings, type ItemType } from '../types/invoice'
 
 const STORAGE_KEY = 'hoa-don-settings'
 
@@ -9,7 +9,7 @@ function readSettings(): AppSettings {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (!saved) return defaultSettings
     const parsed = JSON.parse(saved) as Partial<AppSettings>
-    const savedSurcharges = parsed.surcharges ?? {}
+    const savedSurcharges: Partial<Record<ItemType, number>> = parsed.surcharges ?? {}
     // Migrate the old setup where every item type was mistakenly stored as 14,000đ.
     const allLegacyFourteen = ITEM_TYPES.every(type => savedSurcharges[type] === 14000)
     return {
