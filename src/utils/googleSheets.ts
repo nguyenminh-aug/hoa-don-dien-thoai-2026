@@ -1,7 +1,7 @@
 const STORAGE_KEYS = [
   'hoa-don-settings', 'hoa-don-customers', 'hoa-don-invoices',
   'hoa-don-payments', 'hoa-don-customer-debts', 'hoa-don-customer-debt-transactions', 'hoa-don-operating-expenses',
-  'hoa-don-inventory-products', 'hoa-don-supplier-payments', 'hoa-don-china-suppliers',
+  'hoa-don-inventory-products', 'hoa-don-supplier-payments', 'hoa-don-china-suppliers', 'hoa-don-supplier-debt-entries',
 ]
 
 export function googleSheetsUrl() {

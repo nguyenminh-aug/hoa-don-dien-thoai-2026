@@ -1,6 +1,6 @@
 export type ItemType = 'te' | 'nl' | 'bte' | 'bnl' | 'blo'
 export type PriceMode = 'ndt' | 'vnd'
-export type PaymentMethod = 'transfer' | 'cod'
+export type PaymentMethod = 'transfer' | 'cash' | 'cod'
 
 export const ITEM_TYPES: ItemType[] = ['te', 'nl', 'bte', 'bnl', 'blo']
 
@@ -73,6 +73,17 @@ export interface SupplierPayment {
   exchangeRate?: number
 }
 
+/** A purchase liability added after the supplier's opening balance. */
+export interface SupplierDebtEntry {
+  debtEntryId: string
+  supplierId: string
+  amountNdt: number
+  exchangeRate: number
+  debtDate: string
+  note: string
+  createdAt: string
+}
+
 export interface ChinaSupplier {
   supplierId: string
   name: string
@@ -99,6 +110,8 @@ export interface InvoiceItemDraft {
   itemType: ItemType
   priceMode: PriceMode
   originalPrice: number
+  /** Extra selling fee in VND, applied once per unit after the base price. */
+  extraFeeVnd?: number
   fromInventory?: boolean
   /** Selling price is separate from the preserved original cost for stock items. */
   saleUnitPrice?: number
@@ -154,4 +167,6 @@ export interface Payment {
   note: string
   createdAt: string
   kind: 'deposit' | 'payment'
+  /** System-created settlement used only while an invoice is set to COD. */
+  isAutoCod?: boolean
 }

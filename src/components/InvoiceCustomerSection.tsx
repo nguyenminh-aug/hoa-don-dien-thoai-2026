@@ -23,7 +23,7 @@ export function InvoiceCustomerSection(props: InvoiceCustomerSectionProps) {
       <label className="field"><span className="field-label">Tên khách hàng</span><input value={customerName} onChange={(event) => props.onNameChange(event.target.value)} placeholder="Nhập tên khách" /></label>
       <label className="field"><span className="field-label">SĐT</span><input type="tel" inputMode="tel" value={customerPhone} onChange={(event) => props.onPhoneChange(event.target.value)} placeholder="Ví dụ: 09..." /></label>
       <label className="field invoice-address-field"><span className="field-label">Địa chỉ</span><input value={customerAddress} onChange={(event) => props.onAddressChange(event.target.value)} placeholder="Nhập địa chỉ" /></label>
-      <label className="field"><span className="field-label">Thanh toán</span><select value={paymentMethod} onChange={(event) => props.onPaymentMethodChange(event.target.value as PaymentMethod)}><option value="transfer">Chuyển khoản</option><option value="cod">COD</option></select></label>
+      <label className="field"><span className="field-label">Thanh toán</span><select value={paymentMethod} onChange={(event) => props.onPaymentMethodChange(event.target.value as PaymentMethod)}><option value="transfer">Chuyển khoản</option><option value="cash">Tiền mặt</option><option value="cod">COD</option></select></label>
     </div>
   </section>
 }

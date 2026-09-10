@@ -23,6 +23,7 @@ function createEmptyItem(): InvoiceItemDraft {
     itemType: 'te',
     priceMode: 'ndt',
     originalPrice: 0,
+    extraFeeVnd: 0,
   }
 }
 
@@ -54,7 +55,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
       // and use its former sale price only as the editable default selling price.
       if (!item.fromInventory && next.fromInventory) {
         const source = invoices.filter(invoice => invoice.status === 'bombed').flatMap(invoice => invoice.items).find(stockItem => stockItem.productName.trim().toLowerCase() === next.productName.trim().toLowerCase())
-        if (source) return { ...next, itemType: source.itemType, priceMode: source.priceMode, originalPrice: source.originalPrice, saleUnitPrice: next.saleUnitPrice ?? source.unitPrice }
+        if (source) return { ...next, itemType: source.itemType, priceMode: source.priceMode, originalPrice: source.originalPrice, extraFeeVnd: source.extraFeeVnd ?? 0, saleUnitPrice: next.saleUnitPrice ?? source.unitPrice }
       }
       return next
     }))

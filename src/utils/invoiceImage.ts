@@ -21,7 +21,7 @@ export async function createInvoiceImage(invoice: Invoice): Promise<Blob> {
   const measureCanvas = document.createElement('canvas'); const measure = measureCanvas.getContext('2d')!
   measure.font = '600 30px Arial'
   const itemLines = invoice.items.map(item => wrapText(measure, item.productName, 420))
-  const height = 330 + itemLines.reduce((sum, lines) => sum + Math.max(LINE_HEIGHT, lines.length * 36) + 34, 0) + 334
+  const height = 330 + itemLines.reduce((sum, lines) => sum + Math.max(LINE_HEIGHT, lines.length * 36) + 34, 0) + 398
   const canvas = document.createElement('canvas'); canvas.width = WIDTH; canvas.height = height
   const context = canvas.getContext('2d')!; context.fillStyle = '#ffffff'; context.fillRect(0, 0, WIDTH, height)
   context.fillStyle = '#2563eb'; context.fillRect(0, 0, WIDTH, 190)
@@ -38,7 +38,13 @@ export async function createInvoiceImage(invoice: Invoice): Promise<Blob> {
     y += Math.max(LINE_HEIGHT, lines.length * 36) + 34; context.strokeStyle = '#eef2f7'; context.beginPath(); context.moveTo(PADDING,y-16); context.lineTo(WIDTH-PADDING,y-16); context.stroke()
   })
   const totalQuantity = invoice.items.reduce((sum, item) => sum + item.quantity, 0)
-  const totalRows = [['Tổng số lượng', `${totalQuantity} đôi`], ['Tổng tiền hàng', formatVnd(invoice.subtotal)], ['Đặt cọc', `-${formatVnd(invoice.deposit)}`], ['Còn phải thanh toán', formatVnd(invoice.remaining)]]
+  const isCod = invoice.paymentMethod === 'cod'
+  const totalRows = [
+    ['Tổng số lượng', `${totalQuantity} đôi`],
+    ['Tổng tiền hàng', formatVnd(invoice.subtotal)],
+    ['Đặt cọc', `-${formatVnd(invoice.deposit)}`],
+    ...(isCod ? [['COD cần thanh toán khi giao', formatVnd(invoice.subtotal)]] : [['Còn phải thanh toán', formatVnd(invoice.remaining)]]),
+  ]
   y += 20; totalRows.forEach(([label, value], index) => { const isRemaining = index === totalRows.length - 1; context.fillStyle = isRemaining ? '#166534' : '#475569'; context.font = isRemaining ? '700 34px Arial' : '400 29px Arial'; context.fillText(label, PADDING, y); context.textAlign = 'right'; context.fillText(value, WIDTH-PADDING, y); context.textAlign = 'left'; y += 64 })
   return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Không thể tạo ảnh')), 'image/png'))
 }

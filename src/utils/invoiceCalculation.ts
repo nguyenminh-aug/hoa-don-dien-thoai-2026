@@ -2,7 +2,9 @@ import type { AppSettings, CalculatedInvoiceItem, InvoiceItemDraft, InvoiceLineI
 
 export function calculateUnitPrice(item: InvoiceItemDraft, settings: AppSettings): number {
   if (item.priceMode === 'vnd') {
-    return Math.max(0, roundHalfUp(item.originalPrice))
+    // The VND input is still the purchase cost; it skips currency conversion,
+    // not the configured selling surcharge for the item type.
+    return Math.max(0, roundToNearestThousand(item.originalPrice + settings.surcharges[item.itemType]))
   }
   const convertedPrice = item.originalPrice * settings.exchangeRate + settings.surcharges[item.itemType]
   return Math.max(0, roundToNearestThousand(convertedPrice))
@@ -21,18 +23,24 @@ export function roundToNearestThousand(value: number): number {
 
 export function calculateItem(item: InvoiceItemDraft, settings: AppSettings): CalculatedInvoiceItem {
   const calculatedUnitPrice = calculateUnitPrice(item, settings)
-  const unitPrice = item.fromInventory && item.saleUnitPrice !== undefined
+  const baseUnitPrice = item.fromInventory && item.saleUnitPrice !== undefined
     ? Math.max(0, roundHalfUp(item.saleUnitPrice))
     : calculatedUnitPrice
+  const extraFeeVnd = Math.max(0, roundHalfUp(item.extraFeeVnd ?? 0))
+  const unitPrice = baseUnitPrice + extraFeeVnd
   const quantity = Math.max(0, Math.floor(item.quantity))
-  const chinaAmount = item.priceMode === 'ndt'
-    ? Math.max(0, item.originalPrice)
-    : settings.exchangeRate > 0 ? Math.max(0, item.originalPrice) / settings.exchangeRate : 0
-  const chinaCostVnd = chinaAmount * settings.exchangeRate
+  // `originalPrice` is the cost price.  In VND mode it is already VND, so
+  // never round-trip it through the exchange rate (which used to create a
+  // fractional NDT cost and could make the profit display misleading).
+  const chinaAmount = item.priceMode === 'ndt' ? Math.max(0, item.originalPrice) : 0
+  const chinaCostVnd = item.priceMode === 'ndt'
+    ? chinaAmount * settings.exchangeRate
+    : Math.max(0, roundHalfUp(item.originalPrice))
   return {
     ...item,
     exchangeRate: settings.exchangeRate,
-    surcharge: item.priceMode === 'ndt' ? settings.surcharges[item.itemType] : 0,
+    surcharge: settings.surcharges[item.itemType],
+    extraFeeVnd,
     chinaAmount,
     chinaCostVnd,
     // Tiền cửu vẫn áp dụng cho cả hàng mới lẫn hàng xuất từ kho.

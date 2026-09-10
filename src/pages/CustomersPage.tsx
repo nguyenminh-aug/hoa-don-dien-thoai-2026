@@ -9,33 +9,26 @@ import { useCustomerDebts } from '../hooks/useCustomerDebts'
 interface Props { onOpenCustomer: (id: string) => void }
 
 export function CustomersPage({ onOpenCustomer }: Props) {
-  const { customers, deleteCustomer } = useCustomers()
-  const { invoices } = useInvoices()
-  const { debts } = useCustomerDebts()
-  const [query, setQuery] = useState('')
-  const [showQuantity, setShowQuantity] = useState(true)
-  const [customerIdToDelete, setCustomerIdToDelete] = useState<string | null>(null)
+  const { customers, addCustomer, deleteCustomer, updateCustomer } = useCustomers()
+  const { invoices } = useInvoices(); const { debts } = useCustomerDebts()
+  const [query, setQuery] = useState(''); const [showQuantity, setShowQuantity] = useState(true); const [tab, setTab] = useState<'all' | 'debt'>('all')
+  const [customerIdToDelete, setCustomerIdToDelete] = useState<string | null>(null); const [editingId, setEditingId] = useState<string | null>(null); const [addressDraft, setAddressDraft] = useState('')
+  const [showNewCustomer, setShowNewCustomer] = useState(false); const [newName, setNewName] = useState(''); const [newPhone, setNewPhone] = useState(''); const [newAddress, setNewAddress] = useState(''); const [error, setError] = useState('')
   const rows = useMemo(() => customers.map(customer => {
-    const mine = invoices.filter(invoice => invoice.customerId === customer.customerId && invoice.status !== 'bombed')
-    const quantity = mine.reduce((sum, invoice) => sum + invoice.items.reduce((s, item) => s + item.quantity, 0), 0)
-    const subtotal = mine.reduce((sum, invoice) => sum + invoice.subtotal, 0)
-    const paid = mine.reduce((sum, invoice) => sum + invoice.deposit + invoice.paid, 0)
-    const allInvoices = invoices.filter(invoice => invoice.customerId === customer.customerId)
-    const manualDebt = debts.filter(debt => debt.customerId === customer.customerId).reduce((sum, debt) => sum + debt.remaining, 0)
-    return { customer, invoices: mine.length, allInvoiceCount: allInvoices.length, quantity, subtotal, paid, remaining: Math.max(0, subtotal - paid) + manualDebt, manualDebt }
-  }).filter(row => `${row.customer.name} ${row.customer.address}`.toLowerCase().includes(query.toLowerCase())), [customers, invoices, debts, query])
+    const mine = invoices.filter(invoice => invoice.customerId === customer.customerId && invoice.status !== 'bombed'); const quantity = mine.reduce((sum, invoice) => sum + invoice.items.reduce((s, item) => s + item.quantity, 0), 0); const subtotal = mine.reduce((sum, invoice) => sum + invoice.subtotal, 0); const paid = mine.reduce((sum, invoice) => sum + invoice.deposit + invoice.paid, 0); const manualDebt = debts.filter(debt => debt.customerId === customer.customerId).reduce((sum, debt) => sum + debt.remaining, 0)
+    return { customer, allInvoiceCount: invoices.filter(invoice => invoice.customerId === customer.customerId).length, quantity, paid, remaining: Math.max(0, subtotal - paid) + manualDebt, manualDebt }
+  }).filter(row => `${row.customer.name} ${row.customer.address} ${row.customer.phone ?? ''}`.toLowerCase().includes(query.toLowerCase())).filter(row => tab === 'all' || row.remaining > 0), [customers, invoices, debts, query, tab])
   const customerToDelete = customers.find(customer => customer.customerId === customerIdToDelete)
   const removeCustomer = () => { if (!customerToDelete) return; const invoiceCount = invoices.filter(invoice => invoice.customerId === customerToDelete.customerId).length; const debtCount = debts.filter(debt => debt.customerId === customerToDelete.customerId && debt.remaining > 0).length; if (invoiceCount === 0 && debtCount === 0) deleteCustomer(customerToDelete.customerId); setCustomerIdToDelete(null) }
-  return <>
-    <PageHeader title="Khách hàng" subtitle="Danh sách và công nợ thực tế" />
-    <label className="search-field"><span>Tìm khách hàng</span><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Tên hoặc địa chỉ" /></label>
-    <button className="visibility-button" onClick={() => setShowQuantity(!showQuantity)}>{showQuantity ? 'Ẩn số đôi đã lấy' : 'Hiện số đôi đã lấy'}</button>
-    <div className="customer-list">{rows.map(row => <div className="customer-list-row" key={row.customer.customerId}><button className="customer-card" onClick={() => onOpenCustomer(row.customer.customerId)}>
-      <div><strong>{row.customer.name}</strong><span>{row.customer.address || 'Chưa có địa chỉ'}</span></div>
-      <span className={row.remaining ? 'debt' : 'settled'}>{row.remaining ? `Nợ ${formatVnd(row.remaining)}` : 'Đã thanh toán đủ'}</span>
-      <small>{row.allInvoiceCount} hóa đơn{row.allInvoiceCount !== row.invoices ? ' (gồm hóa đơn bom)' : ''} · {showQuantity ? `${row.quantity} đôi` : '••• đôi'} · Đã thu {formatVnd(row.paid)}{row.manualDebt > 0 ? ' · Có ghi nợ' : ''}</small>
-    </button><button className="icon-btn danger customer-delete-button" onClick={() => setCustomerIdToDelete(row.customer.customerId)} aria-label={`Xóa khách hàng ${row.customer.name}`}>Xóa</button></div>)}</div>
-    {!rows.length && <div className="empty-state large"><strong>Chưa có khách hàng</strong><p>Khách hàng xuất hiện sau khi lưu hóa đơn đầu tiên.</p></div>}
-    {customerToDelete && <DeleteCustomerConfirmModal customer={customerToDelete} invoiceCount={invoices.filter(invoice => invoice.customerId === customerToDelete.customerId).length} debtCount={debts.filter(debt => debt.customerId === customerToDelete.customerId && debt.remaining > 0).length} onCancel={() => setCustomerIdToDelete(null)} onConfirm={removeCustomer} />}
-  </>
+  const saveAddress = (id: string) => { const customer = customers.find(item => item.customerId === id); if (customer) updateCustomer({ ...customer, address: addressDraft.trim() }); setEditingId(null) }
+  const saveCustomer = () => { if (!newName.trim()) return setError('Nhập tên khách hàng.'); addCustomer(newName, newAddress, newPhone); setNewName(''); setNewPhone(''); setNewAddress(''); setError(''); setShowNewCustomer(false) }
+  const debtCount = rows.length
+  return <><PageHeader title="Khách hàng" subtitle="Danh sách, địa chỉ và công nợ thực tế" />
+    <div className="supplier-actions"><button className="secondary-button" onClick={() => { setShowNewCustomer(!showNewCustomer); setError('') }}>+ Tạo khách hàng thủ công</button></div>
+    {showNewCustomer && <section className="form-card payment-form"><div className="form-card-heading"><h2>Khách hàng cũ / khách nợ</h2></div><label className="field"><span className="field-label">Tên khách hàng</span><input value={newName} onChange={e => setNewName(e.target.value)} /></label><label className="field"><span className="field-label">SĐT</span><input value={newPhone} onChange={e => setNewPhone(e.target.value)} /></label><label className="field"><span className="field-label">Địa chỉ</span><input value={newAddress} onChange={e => setNewAddress(e.target.value)} /></label>{error && <div className="error-banner">{error}</div>}<button className="primary-button" onClick={saveCustomer}>Lưu khách hàng</button></section>}
+    <div className="segmented"><button className={tab === 'all' ? 'active' : ''} onClick={() => setTab('all')}>Tất cả ({customers.length})</button><button className={tab === 'debt' ? 'active' : ''} onClick={() => setTab('debt')}>Khách hàng nợ ({tab === 'debt' ? debtCount : customers.filter(customer => invoices.filter(invoice => invoice.customerId === customer.customerId && invoice.status !== 'bombed').reduce((sum, invoice) => sum + invoice.remaining, 0) + debts.filter(debt => debt.customerId === customer.customerId).reduce((sum, debt) => sum + debt.remaining, 0) > 0).length})</button></div>
+    <label className="search-field"><span>Tìm khách hàng</span><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Tên, SĐT hoặc địa chỉ" /></label><button className="visibility-button" onClick={() => setShowQuantity(!showQuantity)}>{showQuantity ? 'Ẩn số đôi đã lấy' : 'Hiện số đôi đã lấy'}</button>
+    <div className="customer-list">{rows.map(row => <div className="customer-list-row" key={row.customer.customerId}><button className="customer-card" onClick={() => onOpenCustomer(row.customer.customerId)}><div><strong>{row.customer.name}</strong>{editingId === row.customer.customerId ? <span onClick={event => event.stopPropagation()}><input aria-label="Địa chỉ khách hàng" value={addressDraft} onChange={event => setAddressDraft(event.target.value)} /><button type="button" className="inline-action" onClick={() => saveAddress(row.customer.customerId)}>Lưu</button><button type="button" className="inline-action" onClick={() => setEditingId(null)}>Hủy</button></span> : <span>{row.customer.address || 'Chưa có địa chỉ'} <button type="button" className="inline-action" onClick={event => { event.preventDefault(); event.stopPropagation(); setEditingId(row.customer.customerId); setAddressDraft(row.customer.address) }}>Sửa địa chỉ</button></span>}</div><span className={row.remaining ? 'debt' : 'settled'}>{row.remaining ? `Nợ ${formatVnd(row.remaining)}` : 'Đã thanh toán đủ'}</span><small>{row.allInvoiceCount} hóa đơn · {showQuantity ? `${row.quantity} đôi` : '••• đôi'} · Đã thu {formatVnd(row.paid)}{row.manualDebt > 0 ? ' · Có ghi nợ' : ''}</small></button><button className="icon-btn danger customer-delete-button" onClick={() => setCustomerIdToDelete(row.customer.customerId)}>Xóa</button></div>)}</div>
+    {!rows.length && <div className="empty-state large"><strong>{tab === 'debt' ? 'Không có khách đang nợ' : 'Chưa có khách hàng'}</strong><p>{tab === 'debt' ? 'Các khách có dư nợ sẽ xuất hiện tại đây.' : 'Tạo khách thủ công hoặc lưu hóa đơn đầu tiên.'}</p></div>}
+    {customerToDelete && <DeleteCustomerConfirmModal customer={customerToDelete} invoiceCount={invoices.filter(invoice => invoice.customerId === customerToDelete.customerId).length} debtCount={debts.filter(debt => debt.customerId === customerToDelete.customerId && debt.remaining > 0).length} onCancel={() => setCustomerIdToDelete(null)} onConfirm={removeCustomer} />}</>
 }

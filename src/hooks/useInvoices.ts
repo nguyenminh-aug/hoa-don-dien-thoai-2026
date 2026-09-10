@@ -70,7 +70,7 @@ export function useInvoices() {
         const createdAt = new Date().toISOString()
         const transactions: Payment[] = []
         if (deposit > 0) transactions.push({ paymentId: generateId('pay'), customerId: input.customerId, invoiceId: invoice.invoiceId, amount: deposit, paymentDate: input.invoiceDate, paymentMethod: input.paymentMethod, note: 'Tiền đặt cọc khi tạo hóa đơn', createdAt, kind: 'deposit' })
-        if (paid > 0) transactions.push({ paymentId: generateId('pay'), customerId: input.customerId, invoiceId: invoice.invoiceId, amount: paid, paymentDate: input.invoiceDate, paymentMethod: input.paymentMethod, note: 'Thanh toán COD khi tạo hóa đơn', createdAt, kind: 'payment' })
+        if (paid > 0) transactions.push({ paymentId: generateId('pay'), customerId: input.customerId, invoiceId: invoice.invoiceId, amount: paid, paymentDate: input.invoiceDate, paymentMethod: input.paymentMethod, note: 'Thanh toán COD khi tạo hóa đơn', createdAt, kind: 'payment', isAutoCod: true })
         setPayments((prev) => [...transactions, ...prev])
       }
       return invoice
@@ -104,6 +104,25 @@ export function useInvoices() {
     [setInvoices, setPayments],
   )
 
+  /** Changes the settlement method and rebuilds only the system-created COD payment. */
+  const changePaymentMethod = useCallback((invoiceId: string, paymentMethod: Invoice['paymentMethod']) => {
+    const current = invoices.find(invoice => invoice.invoiceId === invoiceId)
+    if (!current) return
+    const isAutoCod = (payment: Payment) => Boolean(payment.isAutoCod) || (payment.kind === 'payment' && payment.paymentMethod === 'cod' && payment.note === 'Thanh toán COD khi tạo hóa đơn')
+    const invoicePayments = payments.filter(payment => payment.invoiceId === invoiceId)
+    const kept = invoicePayments.filter(payment => !isAutoCod(payment))
+    const deposit = kept.filter(payment => payment.kind === 'deposit').reduce((sum, payment) => sum + payment.amount, 0)
+    const manualPaid = kept.filter(payment => payment.kind === 'payment').reduce((sum, payment) => sum + payment.amount, 0)
+    const autoAmount = paymentMethod === 'cod' ? Math.max(0, current.subtotal - deposit - manualPaid) : 0
+    const now = new Date().toISOString()
+    setPayments([
+      ...payments.filter(payment => payment.invoiceId !== invoiceId || !isAutoCod(payment)).map(payment => payment.invoiceId === invoiceId && payment.kind === 'deposit' ? { ...payment, paymentMethod } : payment),
+      ...(autoAmount > 0 && current.customerId ? [{ paymentId: generateId('pay'), customerId: current.customerId, invoiceId, amount: autoAmount, paymentDate: current.invoiceDate, paymentMethod: 'cod' as const, note: 'Thanh toán COD khi đổi hình thức', createdAt: now, kind: 'payment' as const, isAutoCod: true }] : []),
+    ])
+    const paid = manualPaid + autoAmount
+    setInvoices(prev => prev.map(invoice => invoice.invoiceId === invoiceId ? { ...invoice, paymentMethod, deposit, paid, remaining: Math.max(0, invoice.subtotal - deposit - paid) } : invoice))
+  }, [invoices, payments, setInvoices, setPayments])
+
   const reviseInvoice = useCallback((invoiceId: string, items: InvoiceItemDraft[], settings: AppSettings) => {
     setInvoices(prev => prev.map(invoice => {
       if (invoice.invoiceId !== invoiceId) return invoice
@@ -126,5 +145,5 @@ export function useInvoices() {
       : invoice))
   }, [setInvoices])
 
-  return { invoices, payments, createInvoice, addPayment, updateInvoice, reviseInvoice, deleteInvoice, markInvoiceBombed }
+  return { invoices, payments, createInvoice, addPayment, updateInvoice, changePaymentMethod, reviseInvoice, deleteInvoice, markInvoiceBombed }
 }

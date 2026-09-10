@@ -9,6 +9,9 @@ const STORAGE_TO_SHEET: Record<string, string> = {
   'hoa-don-customer-debt-transactions': 'LichSuCongNoKhach',
   'hoa-don-operating-expenses': 'ChiPhiVanHanh',
   'hoa-don-inventory-products': 'HangTon',
+  'hoa-don-supplier-payments': 'ThanhToanNCC',
+  'hoa-don-china-suppliers': 'NhaCungCapTQ',
+  'hoa-don-supplier-debt-entries': 'PhatSinhNoNCC',
 }
 
 function readStorage(key: string) {
