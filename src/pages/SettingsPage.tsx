@@ -11,7 +11,7 @@ import { parseNumber } from '../utils/money'
 export function SettingsPage() {
   const { settings, setSettings } = useSettings()
   const { customers } = useCustomers()
-  const { invoices, payments } = useInvoices()
+  const { invoices, payments, deletedInvoices, restoreInvoice } = useInvoices()
 
   const [exchangeRateInput, setExchangeRateInput] = useState(String(settings.exchangeRate / 1000))
   const [surchargeInputs, setSurchargeInputs] = useState<Record<ItemType, string>>(() => {
@@ -49,6 +49,15 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader title="Cài đặt" subtitle="Tỷ giá và phụ phí theo loại hàng" />
+      <section className="form-card">
+        <div className="form-card-heading"><h2>Thùng rác hóa đơn ({deletedInvoices.length})</h2></div>
+        <p>Khôi phục sẽ đưa hóa đơn và thanh toán liên quan trở lại số liệu. Hóa đơn bom hàng sẽ trở lại hàng tồn.</p>
+        {!deletedInvoices.length && <p>Không có hóa đơn trong thùng rác.</p>}
+        {[...deletedInvoices].sort((a, b) => (b.deletedAt || '').localeCompare(a.deletedAt || '')).map(invoice => <div className="invoice-line trash-row" key={invoice.invoiceId}>
+          <div><strong>{invoice.invoiceId} · {invoice.customerName}</strong><span>{invoice.invoiceDate} · {invoice.subtotal.toLocaleString('vi-VN')}đ</span><span>Đã xóa: {new Date(invoice.deletedAt!).toLocaleString('vi-VN')}</span></div>
+          <button className="secondary-button" onClick={() => { if (window.confirm(`Khôi phục hóa đơn ${invoice.invoiceId} và các thanh toán liên quan?`)) restoreInvoice(invoice.invoiceId) }}>Khôi phục</button>
+        </div>)}
+      </section>
 
       <section className="form-card">
         <div className="form-card-heading">
@@ -70,10 +79,10 @@ export function SettingsPage() {
       </section>
 
       <section className="form-card local-storage-card">
-        <div className="form-card-heading"><h2>Bộ nhớ thử nghiệm trên máy</h2><span className="status-pill">Đang hoạt động</span></div>
-        <p>Dữ liệu được lưu cục bộ trong trình duyệt này, nên bạn có thể thử toàn bộ chức năng trước khi kết nối Google Sheets.</p>
+        <div className="form-card-heading"><h2>Dữ liệu trên thiết bị</h2><span className="status-pill">Đã lưu trên máy</span></div>
+        <p>Dữ liệu được lưu trên thiết bị. Khi kết nối Google Sheets, kiểm tra trạng thái đồng bộ trước khi đóng ứng dụng.</p>
         <div className="storage-counts"><span>{customers.length} khách hàng</span><span>{invoices.length} hóa đơn</span><span>{payments.length} giao dịch</span></div>
-        <span className="field-help">Không xóa dữ liệu trình duyệt hoặc dùng chế độ ẩn danh nếu muốn giữ lại dữ liệu test.</span>
+        <span className="field-help">Dùng nút tải bản sao để giữ dữ liệu chưa đồng bộ trước khi xóa dữ liệu trình duyệt.</span>
       </section>
 
       <section className="form-card">
@@ -81,7 +90,7 @@ export function SettingsPage() {
         <label className="field">
           <span className="field-label">Google Apps Script API URL</span>
           <input inputMode="url" value={apiUrl} onChange={(event) => setApiUrl(event.target.value)} placeholder="https://script.google.com/macros/s/.../exec" />
-          <span className="field-help">{apiUrl ? 'Đã cấu hình URL. Dữ liệu hiện được lưu cục bộ cho đến khi API Apps Script được triển khai.' : 'Chưa kết nối — nhập URL Web App Apps Script để cấu hình.'}</span>
+          <span className="field-help">{apiUrl ? 'Đã cấu hình URL. Trạng thái ở đầu ứng dụng cho biết dữ liệu đã đồng bộ hay còn trên thiết bị.' : 'Chưa kết nối — nhập URL Web App Apps Script để cấu hình.'}</span>
         </label>
       </section>
 

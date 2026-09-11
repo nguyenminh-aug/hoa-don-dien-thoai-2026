@@ -1,5 +1,8 @@
 node_modules/
 dist/
+dist-staging/
+.tools/
+.env.*.local
 .env
 .env.local
 *.log

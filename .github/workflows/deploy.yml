@@ -1,9 +1,13 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      approve_production:
+        description: 'Deploy the reviewed and merged main branch to production'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -16,6 +20,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' && inputs.approve_production == true
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -31,7 +36,10 @@ jobs:
         run: npm ci
 
       - name: Build app
-        run: npm run build
+        run: |
+          cp .env.example .env
+          npm run test:safety
+          npm run build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

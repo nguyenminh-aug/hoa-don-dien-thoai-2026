@@ -135,6 +135,7 @@ export interface InvoiceLineItem extends CalculatedInvoiceItem {
 }
 
 export interface Invoice {
+  deletedAt?: string
   invoiceId: string
   customerId: string | null
   customerName: string
@@ -158,6 +159,7 @@ export interface Invoice {
 }
 
 export interface Payment {
+  deletedAt?: string
   paymentId: string
   customerId: string
   invoiceId: string

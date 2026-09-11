@@ -3,6 +3,7 @@ import type { AppSettings, Invoice, InvoiceItemDraft, Payment } from '../types/i
 import { calculateChinaCostTotal, calculateItem, calculateInvoiceTotalFromItems, calculateItemOperatingCostTotal, calculateOperatingCostTotal, emptyOperatingCosts } from '../utils/invoiceCalculation'
 import { generateId } from '../utils/id'
 import { useLocalStorage } from './useLocalStorage'
+import { setInvoiceDeleted, visibleInvoiceData } from '../utils/invoiceTrash'
 
 const STORAGE_KEY = 'hoa-don-invoices'
 const PAYMENT_STORAGE_KEY = 'hoa-don-payments'
@@ -22,8 +23,9 @@ export interface CreateInvoiceInput {
 }
 
 export function useInvoices() {
-  const [invoices, setInvoices] = useLocalStorage<Invoice[]>(STORAGE_KEY, [])
-  const [payments, setPayments] = useLocalStorage<Payment[]>(PAYMENT_STORAGE_KEY, [])
+  const [allInvoices, setInvoices] = useLocalStorage<Invoice[]>(STORAGE_KEY, [])
+  const [allPayments, setPayments] = useLocalStorage<Payment[]>(PAYMENT_STORAGE_KEY, [])
+  const { invoices, payments, deletedInvoices } = visibleInvoiceData(allInvoices, allPayments)
 
   const createInvoice = useCallback(
     (input: CreateInvoiceInput, settings: AppSettings): Invoice => {
@@ -98,13 +100,14 @@ export function useInvoices() {
 
   const deleteInvoice = useCallback(
     (invoiceId: string) => {
-      setInvoices((prev) => prev.filter((item) => item.invoiceId !== invoiceId))
-      setPayments((prev) => prev.filter((payment) => payment.invoiceId !== invoiceId))
+      setInvoices((prev) => setInvoiceDeleted(prev, invoiceId, true))
     },
     [setInvoices, setPayments],
   )
 
   /** Changes the settlement method and rebuilds only the system-created COD payment. */
+  const restoreInvoice = (invoiceId: string) => setInvoices(prev => setInvoiceDeleted(prev, invoiceId, false))
+
   const changePaymentMethod = useCallback((invoiceId: string, paymentMethod: Invoice['paymentMethod']) => {
     const current = invoices.find(invoice => invoice.invoiceId === invoiceId)
     if (!current) return
@@ -116,12 +119,12 @@ export function useInvoices() {
     const autoAmount = paymentMethod === 'cod' ? Math.max(0, current.subtotal - deposit - manualPaid) : 0
     const now = new Date().toISOString()
     setPayments([
-      ...payments.filter(payment => payment.invoiceId !== invoiceId || !isAutoCod(payment)).map(payment => payment.invoiceId === invoiceId && payment.kind === 'deposit' ? { ...payment, paymentMethod } : payment),
+      ...allPayments.map(payment => payment.invoiceId !== invoiceId || payment.deletedAt ? payment : isAutoCod(payment) ? { ...payment, deletedAt: now } : payment.kind === 'deposit' ? { ...payment, paymentMethod } : payment),
       ...(autoAmount > 0 && current.customerId ? [{ paymentId: generateId('pay'), customerId: current.customerId, invoiceId, amount: autoAmount, paymentDate: current.invoiceDate, paymentMethod: 'cod' as const, note: 'Thanh toán COD khi đổi hình thức', createdAt: now, kind: 'payment' as const, isAutoCod: true }] : []),
     ])
     const paid = manualPaid + autoAmount
     setInvoices(prev => prev.map(invoice => invoice.invoiceId === invoiceId ? { ...invoice, paymentMethod, deposit, paid, remaining: Math.max(0, invoice.subtotal - deposit - paid) } : invoice))
-  }, [invoices, payments, setInvoices, setPayments])
+  }, [invoices, payments, allPayments, setInvoices, setPayments])
 
   const reviseInvoice = useCallback((invoiceId: string, items: InvoiceItemDraft[], settings: AppSettings) => {
     setInvoices(prev => prev.map(invoice => {
@@ -145,5 +148,5 @@ export function useInvoices() {
       : invoice))
   }, [setInvoices])
 
-  return { invoices, payments, createInvoice, addPayment, updateInvoice, changePaymentMethod, reviseInvoice, deleteInvoice, markInvoiceBombed }
+  return { invoices, payments, deletedInvoices, restoreInvoice, createInvoice, addPayment, updateInvoice, changePaymentMethod, reviseInvoice, deleteInvoice, markInvoiceBombed }
 }

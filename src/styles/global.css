@@ -128,3 +128,5 @@ h1, h2, p { margin: 0; } h1 { font-size: 23px; letter-spacing: -0.5px; line-heig
 .customer-card { cursor: pointer; }
 .customer-contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .customer-contact-form input { min-width: 0; min-height: 32px; padding: 0 8px; border: 1px solid #c9d9ed; border-radius: 6px; font: inherit; font-size: 12px; }
+
+.trash-row { align-items: flex-start; gap: 12px; }.trash-row > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }.trash-row .secondary-button { width: auto; min-width: 100px; margin: 0; padding: 10px; flex-shrink: 0; }

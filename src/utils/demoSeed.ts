@@ -6,6 +6,7 @@ const makeItem = (id: string, productName: string, quantity: number, originalPri
 }
 
 export function seedDemoDataFromQuery() {
+  if (import.meta.env.MODE === 'production') return
   if (typeof window === 'undefined' || !window.location.search.includes('reset-demo=1')) return
   const now = new Date().toISOString(); const date = new Date().toISOString().slice(0, 10)
   const customers: Customer[] = [
