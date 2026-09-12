@@ -1,4 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
+import { useInvoices } from './useInvoices'
+import { initializeManualInventory, MANUAL_INVENTORY_MARKER } from '../utils/manualInventory'
 import type { InventoryProduct } from '../types/invoice'
 import { useLocalStorage } from './useLocalStorage'
 
@@ -6,7 +8,13 @@ const STORAGE_KEY = 'hoa-don-inventory-products'
 const productKey = (name: string) => name.trim().toLowerCase()
 
 export function useInventoryProducts() {
-  const [products, setProducts] = useLocalStorage<InventoryProduct[]>(STORAGE_KEY, [])
+  const [storedProducts, setProducts] = useLocalStorage<InventoryProduct[]>(STORAGE_KEY, [])
+
+  const { invoices } = useInvoices()
+  useEffect(() => {
+    if (!storedProducts.some(product => product.productKey === MANUAL_INVENTORY_MARKER)) setProducts(previous => initializeManualInventory(previous, invoices, new Date().toISOString()))
+  }, [storedProducts, invoices, setProducts])
+  const products = storedProducts.filter(product => product.productKey !== MANUAL_INVENTORY_MARKER)
 
   const saveProduct = useCallback((input: { productName: string; inventoryCode: string; unitPrice: number; quantityToAdd: number }) => {
     const key = productKey(input.productName)
@@ -25,7 +33,7 @@ export function useInventoryProducts() {
     const now = new Date().toISOString()
     setProducts(prev => {
       const existing = prev.find(product => product.productKey === key)
-      if (existing) return prev.map(product => product.productKey === key ? { ...product, quantityAdjustment: product.quantityAdjustment + change, updatedAt: now } : product)
+      if (existing) return prev.map(product => product.productKey === key ? { ...product, quantityAdjustment: Math.max(0, product.quantityAdjustment + change), updatedAt: now } : product)
       return [...prev, { productKey: key, inventoryCode: fallback.inventoryCode, productName: fallback.productName, unitPrice: fallback.unitPrice, quantityAdjustment: change, createdAt: now, updatedAt: now }]
     })
   }, [setProducts])

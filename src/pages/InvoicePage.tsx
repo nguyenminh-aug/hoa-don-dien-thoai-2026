@@ -6,7 +6,6 @@ import { InvoiceTotalsSection } from '../components/InvoiceTotalsSection'
 import { PageHeader } from '../components/PageHeader'
 import { useCustomers } from '../hooks/useCustomers'
 import { useInvoices } from '../hooks/useInvoices'
-import { useInventoryProducts } from '../hooks/useInventoryProducts'
 import { useSettings } from '../hooks/useSettings'
 import type { InvoiceItemDraft, PaymentMethod } from '../types/invoice'
 import { generateId, generateInvoiceCode, todayIso } from '../utils/id'
@@ -29,8 +28,7 @@ function createEmptyItem(): InvoiceItemDraft {
 
 export function InvoicePage({ onSaved }: InvoicePageProps) {
   const { settings } = useSettings()
-  const { createInvoice, invoices } = useInvoices()
-  const { products } = useInventoryProducts()
+  const { createInvoice } = useInvoices()
   const { customers, addCustomer } = useCustomers()
 
   const [customerName, setCustomerName] = useState('')
@@ -48,18 +46,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
   const subtotal = useMemo(() => calculateInvoiceTotal(items.filter(item => item.productName.trim()), settings), [items, settings])
   const codAmount = paymentMethod === 'cod' ? Math.max(0, subtotal - deposit) : undefined
 
-  const updateItem = (next: InvoiceItemDraft) => {
-    setItems((prev) => prev.map((item) => {
-      if (item.id !== next.id) return item
-      // When a bombed item is selected from stock, preserve its recorded input cost
-      // and use its former sale price only as the editable default selling price.
-      if (!item.fromInventory && next.fromInventory) {
-        const source = invoices.filter(invoice => invoice.status === 'bombed').flatMap(invoice => invoice.items).find(stockItem => stockItem.productName.trim().toLowerCase() === next.productName.trim().toLowerCase())
-        if (source) return { ...next, itemType: source.itemType, priceMode: source.priceMode, originalPrice: source.originalPrice, extraFeeVnd: source.extraFeeVnd ?? 0, saleUnitPrice: next.saleUnitPrice ?? source.unitPrice }
-      }
-      return next
-    }))
-  }
+  const updateItem = (next: InvoiceItemDraft) => setItems(previous => previous.map(item => item.id === next.id ? next : item))
 
   const handleSelectCustomer = (customer: typeof customers[number] | null) => {
     if (!customer) {
@@ -103,14 +90,6 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
       if (item.quantity <= 0) errs.push(`Số lượng của "${item.productName}" phải lớn hơn 0`)
       if (item.originalPrice < 0) errs.push(`Giá của "${item.productName}" không được âm`)
     }
-    const stockByProduct = new Map<string, number>()
-    invoices.filter(invoice => invoice.status === 'bombed').forEach(invoice => invoice.items.forEach(item => { const key = item.productName.trim().toLowerCase(); stockByProduct.set(key, (stockByProduct.get(key) ?? 0) + item.quantity) }))
-    invoices.filter(invoice => invoice.status !== 'bombed').forEach(invoice => invoice.items.filter(item => item.fromInventory).forEach(item => { const key = item.productName.trim().toLowerCase(); stockByProduct.set(key, (stockByProduct.get(key) ?? 0) - item.quantity) }))
-    products.forEach(product => stockByProduct.set(product.productKey, (stockByProduct.get(product.productKey) ?? 0) + product.quantityAdjustment))
-    const requestedByProduct = new Map<string, number>()
-    validItems.filter(item => item.fromInventory).forEach(item => { const key = item.productName.trim().toLowerCase(); requestedByProduct.set(key, (requestedByProduct.get(key) ?? 0) + item.quantity) })
-    requestedByProduct.forEach((quantity, key) => { const available = Math.max(0, stockByProduct.get(key) ?? 0); if (quantity > available) errs.push(`Hàng tồn "${key}" chỉ còn ${available} đôi`) })
-
     if (deposit < 0) errs.push('Tiền đặt cọc không được âm')
     setErrors(errs)
     if (errs.length > 0) return

@@ -8,7 +8,6 @@ interface InvoiceItemEditorProps { item: InvoiceItemDraft; settings: AppSettings
 
 export function InvoiceItemEditor({ item, settings, index, isRemovable, onChange, onRemove }: InvoiceItemEditorProps) {
   const calculated = calculateItem(item, settings)
-  const changeSource = (fromInventory: boolean) => onChange({ ...item, fromInventory, saleUnitPrice: fromInventory ? item.saleUnitPrice ?? calculated.unitPrice : undefined })
   return <tr>
     <td className="invoice-row-number"><span>{index + 1}</span><button type="button" className="table-delete" onClick={onRemove} disabled={!isRemovable} aria-label={`Xóa mặt hàng ${index + 1}`}><Icon name="trash" size={16} /></button></td>
     <td><span className="invoice-cell-control"><input aria-label={`Mã hàng dòng ${index + 1}`} value={item.productName} onChange={event => onChange({ ...item, productName: event.target.value })} placeholder="Mã hàng" /></span></td>
@@ -16,9 +15,8 @@ export function InvoiceItemEditor({ item, settings, index, isRemovable, onChange
     <td><span className="invoice-cell-control"><input aria-label={`SL hàng ${index + 1}`} type="number" min={0} inputMode="numeric" value={item.quantity || ''} placeholder="0" onChange={event => onChange({ ...item, quantity: Math.max(0, Math.floor(parseNumber(event.target.value))) })} /></span></td>
     <td><span className="invoice-cell-control"><select aria-label={`ĐV hàng ${index + 1}`} value={item.priceMode} onChange={event => onChange({ ...item, priceMode: event.target.value as InvoiceItemDraft['priceMode'] })}><option value="ndt">NDT</option><option value="vnd">VNĐ</option></select></span></td>
     <td><span className="invoice-cell-control"><input aria-label={`Giá gốc hàng ${index + 1}`} type="number" min={0} step={item.priceMode === 'ndt' ? 'any' : 1000} inputMode="decimal" value={item.originalPrice || ''} placeholder="0" onChange={event => onChange({ ...item, originalPrice: Math.max(0, parseNumber(event.target.value)) })} /></span></td>
-    <td><span className="invoice-cell-control"><select aria-label={`Nguồn hàng ${index + 1}`} value={item.fromInventory ? 'inventory' : 'new'} onChange={event => changeSource(event.target.value === 'inventory')}><option value="new">Mới</option><option value="inventory">Tồn</option></select></span></td>
     <td><span className="invoice-cell-control"><input aria-label={`Phụ phí (VNĐ) hàng ${index + 1}`} type="number" min={0} step={1000} inputMode="numeric" value={item.extraFeeVnd || ''} placeholder="0" onChange={event => onChange({ ...item, extraFeeVnd: Math.max(0, parseNumber(event.target.value)) })} /></span></td>
-    <td>{item.fromInventory ? <span className="invoice-cell-control"><input aria-label={`Giá bán hàng ${index + 1}`} className="table-number" type="number" min={0} inputMode="numeric" value={item.saleUnitPrice ?? calculated.unitPrice} onChange={event => onChange({ ...item, saleUnitPrice: Math.max(0, parseNumber(event.target.value)) })} /></span> : <output className="table-output">{formatVnd(calculated.unitPrice)}</output>}</td>
+    <td><output className="table-output">{formatVnd(calculated.unitPrice)}</output></td>
     <td><output className="table-total">{formatVnd(calculated.subtotal)}</output></td>
   </tr>
 }
