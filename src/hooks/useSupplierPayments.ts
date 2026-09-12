@@ -31,6 +31,11 @@ export function useSupplierPayments() {
     return supplier
   }, [setSuppliers])
 
+  const updateOpeningDebt = (supplierId: string, openingDebtNdt: number) => {
+    if (!Number.isFinite(openingDebtNdt) || openingDebtNdt < 0) throw new Error('Dư nợ lịch sử không hợp lệ')
+    setSuppliers(previous => previous.map(supplier => supplier.supplierId === supplierId ? { ...supplier, openingDebtNdt, updatedAt: new Date().toISOString() } : supplier))
+  }
+
   const addPayment = useCallback((input: Omit<SupplierPayment, 'paymentId' | 'createdAt'>) => {
     const amount = Math.max(0, Math.round(input.amount))
     if (!amount) throw new Error('Số tiền trả NCC phải lớn hơn 0')
@@ -53,5 +58,5 @@ export function useSupplierPayments() {
     return entry
   }, [setDebtEntries])
 
-  return { suppliers, payments, investment, setInvestment, debtEntries, addSupplier, addPayment, addDebtEntry, deleteSupplier }
+  return { suppliers, payments, investment, setInvestment, debtEntries, addSupplier, updateOpeningDebt, addPayment, addDebtEntry, deleteSupplier }
 }

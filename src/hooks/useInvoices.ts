@@ -148,5 +148,8 @@ export function useInvoices() {
       : invoice))
   }, [setInvoices])
 
-  return { invoices, payments, deletedInvoices, restoreInvoice, createInvoice, addPayment, updateInvoice, changePaymentMethod, reviseInvoice, deleteInvoice, markInvoiceBombed }
+  const confirmCodCollected = (paymentId: string, collectedDate: string) => {
+    setPayments(previous => previous.map(payment => payment.paymentId === paymentId && payment.isAutoCod && !payment.deletedAt ? { ...payment, collectedDate } : payment))
+  }
+  return { invoices, payments, confirmCodCollected, deletedInvoices, restoreInvoice, createInvoice, addPayment, updateInvoice, changePaymentMethod, reviseInvoice, deleteInvoice, markInvoiceBombed }
 }

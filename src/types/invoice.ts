@@ -174,5 +174,6 @@ export interface Payment {
   createdAt: string
   kind: 'deposit' | 'payment'
   /** System-created settlement used only while an invoice is set to COD. */
+  collectedDate?: string
   isAutoCod?: boolean
 }
