@@ -101,7 +101,7 @@ export async function synchronize() {
         const serverRows = new Map<string, unknown>(JSON.parse(remote.data[key]).map((r: Record<string,string>) => [r[id], r]))
         for (const row of JSON.parse(local[key])) {
           const known = serverRows.get(row[id])
-          if (known && stable(known) !== stable(row)) throw Error('Dữ liệu cũ trên máy khác Google Sheets. Lưu bản sao rồi chọn tải dữ liệu đã phục hồi.')
+          if (known && stable(known) !== stable(row)) throw Error('Dữ liệu cũ trên máy khác dữ liệu đã đồng bộ. Lưu bản sao rồi chọn tải dữ liệu đã phục hồi.')
         }
       }
       merged = mergeSnapshots(Object.fromEntries(Object.keys(RECORD_IDS).map(k => [k, '[]'])), local, remote.data)
@@ -112,13 +112,13 @@ export async function synchronize() {
       await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' }, body: new URLSearchParams({ payload: JSON.stringify({ action: 'sync-v2', baseRevision: remote.revision, rawData: merged }) }), signal: AbortSignal.timeout(30_000) })
       // Opaque POST is not an acknowledgement. Read back the canonical snapshot.
       const confirmed = await remoteBackup(url)
-      if (!sameBusiness(merged, confirmed.data)) throw Error('Chưa xác nhận được thay đổi trên Google Sheets; đã giữ dữ liệu trên máy. Bấm thử lại.')
+      if (!sameBusiness(merged, confirmed.data)) throw Error('Chưa xác nhận được thay đổi trong dữ liệu đã đồng bộ; đã giữ dữ liệu trên máy. Bấm thử lại.')
     }
     const current = readAppData()
     const withPending = mergeSnapshots(local, current, merged)
     apply(withPending)
     localStorage.setItem(BASE_KEY, JSON.stringify({ url, data: merged }))
-    status(sameBusiness(withPending, merged) ? 'Đã đồng bộ Google Sheets' : 'Còn thay đổi trên máy đang chờ đồng bộ')
+    status(sameBusiness(withPending, merged) ? 'Đã đồng bộ dữ liệu' : 'Còn thay đổi trên máy đang chờ đồng bộ')
     return true
   } catch (error) {
     status(error instanceof Error ? error.message : 'Chưa đồng bộ; dữ liệu vẫn ở thiết bị.')
@@ -141,7 +141,7 @@ export async function useRemoteBackup() {
     exportLocalBackup()
     apply(remote.data)
     localStorage.setItem(BASE_KEY, JSON.stringify({ url, data: remote.data }))
-    status('Đã tải dữ liệu Google Sheets; bản cũ trên máy đã được sao lưu')
+    status('Đã tải dữ liệu; bản cũ trên máy đã được sao lưu')
   } catch (error) { status(error instanceof Error ? error.message : 'Không tải được dữ liệu') }
   finally { busy = false }
 }

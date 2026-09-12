@@ -14,9 +14,9 @@ export function GoogleSheetsSync() {
     return () => { window.clearTimeout(timer); window.clearInterval(interval); window.removeEventListener('hoa-don-sync-status', update); window.removeEventListener('hoa-don-user-write', schedule); window.removeEventListener('online', schedule) }
   }, [])
   if (!googleSheetsUrl().trim()) return null
-  return <section className="form-card" aria-label="Đồng bộ dữ liệu"><p role="status">{message || 'Đang kiểm tra Google Sheets…'}</p>
+  return <section className="form-card" aria-label="Đồng bộ dữ liệu"><p role="status">{message || 'Đang tải dữ liệu…'}</p>
     <button className="inline-action" onClick={() => void synchronize()}>Đồng bộ lại</button>{' '}
     <button className="inline-action" onClick={exportLocalBackup}>Tải bản sao trên máy</button>{' '}
-    <button className="inline-action" onClick={() => { if (window.confirm('Tải dữ liệu Google Sheets thay cho dữ liệu đang có trên thiết bị? Bản hiện tại sẽ được tải xuống và lưu dự phòng trước khi thay thế.')) void useRemoteBackup() }}>Tải bản Google Sheets</button>
+    <button className="inline-action" onClick={() => { if (window.confirm('Tải dữ liệu đã đồng bộ thay cho dữ liệu đang có trên thiết bị? Bản hiện tại sẽ được tải xuống và lưu dự phòng trước khi thay thế.')) void useRemoteBackup() }}>Tải dữ liệu</button>
   </section>
 }

@@ -18,14 +18,14 @@ export function mergeSnapshots(base: Snapshot, local: Snapshot, remote: Snapshot
     const index = (raw: string) => new Map<string, Record<string, unknown>>(JSON.parse(raw).map((r: Record<string, unknown>) => [r[id], r]))
     const b = index(base[key]), l = index(local[key]), r = index(remote[key])
     for (const [recordId, original] of b) {
-      if (!l.has(recordId) || !r.has(recordId)) throw Error('Dữ liệu thiếu bản ghi. Hãy đối chiếu với Google Sheets.')
+      if (!l.has(recordId) || !r.has(recordId)) throw Error('Dữ liệu thiếu bản ghi. Hãy đối chiếu với dữ liệu đã đồng bộ.')
       const mine = l.get(recordId), theirs = r.get(recordId)
-      if (stable(mine) !== stable(original) && stable(theirs) !== stable(original) && stable(mine) !== stable(theirs)) throw Error('Một hóa đơn hoặc bản ghi vừa được sửa trên hai thiết bị. Hãy tải bản Google Sheets sau khi lưu bản sao trên máy.')
+      if (stable(mine) !== stable(original) && stable(theirs) !== stable(original) && stable(mine) !== stable(theirs)) throw Error('Một hóa đơn hoặc bản ghi vừa được sửa trên hai thiết bị. Hãy tải dữ liệu đã đồng bộ sau khi lưu bản sao trên máy.')
     }
     const merged = new Map(r)
     for (const [recordId, mine] of l) {
       const original = b.get(recordId), theirs = r.get(recordId)
-      if (!original && theirs && stable(mine) !== stable(theirs)) throw Error('Trùng mã với dữ liệu khác trên Google Sheets.')
+      if (!original && theirs && stable(mine) !== stable(theirs)) throw Error('Trùng mã với dữ liệu khác đã đồng bộ.')
       if (!original || stable(mine) !== stable(original)) merged.set(recordId, mine)
     }
     result[key] = JSON.stringify([...merged.values()])

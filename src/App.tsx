@@ -26,7 +26,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   useEffect(() => { void restoreGoogleBackup().finally(() => setReady(true)) }, [])
-  if (!ready) return <div className="app-shell"><main className="app-content"><div className="empty-state large"><strong>Đang tải dữ liệu</strong><p>Đang kiểm tra bản sao Google Sheets.</p></div></main></div>
+  if (!ready) return <div className="app-shell"><main className="app-content"><div className="empty-state large"><strong>Đang tải dữ liệu</strong><p>Đang kiểm tra bản sao dữ liệu.</p></div></main></div>
   const page = detail?.type === 'customer' ? <CustomerDetailPage customerId={detail.id} onBack={() => setDetail(null)} onOpenInvoice={id => setDetail({ type: 'invoice', id })} />
     : detail?.type === 'invoice' ? <InvoiceDetailPage invoiceId={detail.id} onBack={() => setDetail(null)} />
     : { invoice: <InvoicePage onSaved={id => setDetail({ type: 'invoice', id })} />, customers: <CustomersPage onOpenCustomer={id => setDetail({ type: 'customer', id })} />, inventory: <InventoryPage />, expenses: <OperatingExpensesPage />, suppliers: <SupplierDebtPage />, statistics: <StatisticsPage />, settings: <SettingsPage /> }[activeTab]

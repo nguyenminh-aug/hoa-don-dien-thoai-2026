@@ -80,17 +80,17 @@ export function SettingsPage() {
 
       <section className="form-card local-storage-card">
         <div className="form-card-heading"><h2>Dữ liệu trên thiết bị</h2><span className="status-pill">Đã lưu trên máy</span></div>
-        <p>Dữ liệu được lưu trên thiết bị. Khi kết nối Google Sheets, kiểm tra trạng thái đồng bộ trước khi đóng ứng dụng.</p>
+        <p>Dữ liệu được lưu trên thiết bị. Khi kết nối đồng bộ dữ liệu, kiểm tra trạng thái đồng bộ trước khi đóng ứng dụng.</p>
         <div className="storage-counts"><span>{customers.length} khách hàng</span><span>{invoices.length} hóa đơn</span><span>{payments.length} giao dịch</span></div>
         <span className="field-help">Dùng nút tải bản sao để giữ dữ liệu chưa đồng bộ trước khi xóa dữ liệu trình duyệt.</span>
       </section>
 
       <section className="form-card">
-        <div className="form-card-heading"><h2>Google Sheets</h2></div>
+        <div className="form-card-heading"><h2>Dữ liệu</h2></div>
         <label className="field">
-          <span className="field-label">Google Apps Script API URL</span>
+          <span className="field-label">Đường dẫn kết nối dữ liệu</span>
           <input inputMode="url" value={apiUrl} onChange={(event) => setApiUrl(event.target.value)} placeholder="https://script.google.com/macros/s/.../exec" />
-          <span className="field-help">{apiUrl ? 'Đã cấu hình URL. Trạng thái ở đầu ứng dụng cho biết dữ liệu đã đồng bộ hay còn trên thiết bị.' : 'Chưa kết nối — nhập URL Web App Apps Script để cấu hình.'}</span>
+          <span className="field-help">{apiUrl ? 'Đã cấu hình URL. Trạng thái ở đầu ứng dụng cho biết dữ liệu đã đồng bộ hay còn trên thiết bị.' : 'Chưa kết nối — nhập đường dẫn kết nối dữ liệu để cấu hình.'}</span>
         </label>
       </section>
 
