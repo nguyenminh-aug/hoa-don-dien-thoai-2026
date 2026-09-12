@@ -200,7 +200,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
         <p className="invoice-table-hint" id="invoice-table-help">Phụ phí, giá bán và thành tiền tính bằng VNĐ.</p>
         <div className="invoice-table-scroll" role="region" aria-label="Bảng mặt hàng" aria-describedby="invoice-table-help" tabIndex={0}>
           <table className="invoice-table invoice-entry-table">
-            <thead><tr>{['STT', 'Mã hàng', 'Loại', 'SL', 'Nhập giá', 'Giá gốc', 'Nguồn', 'Phụ phí', 'Đơn giá bán', 'Thành tiền'].map(title => <th key={title} scope="col">{title}</th>)}</tr></thead>
+            <thead><tr>{['STT', 'Mã hàng', 'Loại', 'SL', 'ĐV', 'Giá gốc', 'Nguồn', 'Phụ phí', 'Giá bán', 'Thành tiền'].map(title => <th key={title} scope="col">{title}</th>)}</tr></thead>
             <tbody>{items.map((item, index) => (
               <InvoiceItemEditor
                 key={item.id}
