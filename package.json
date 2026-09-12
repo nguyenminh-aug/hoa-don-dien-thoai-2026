@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "test:safety": "node --test scripts/test-sync-safety.mjs scripts/test-invoice-trash.mjs scripts/test-server-safety.mjs scripts/test-invoice-packages.mjs",
+    "test:safety": "node --test scripts/test-sync-safety.mjs scripts/test-invoice-trash.mjs scripts/test-server-safety.mjs scripts/test-invoice-packages.mjs scripts/test-supplier-cash.mjs",
     "dev": "node node_modules/vite/bin/vite.js",
     "dev:staging": "node node_modules/vite/bin/vite.js --mode staging",
     "build:staging": "node node_modules/typescript/bin/tsc --noEmit && node node_modules/vite/bin/vite.js build --mode staging",

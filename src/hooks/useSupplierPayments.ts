@@ -8,9 +8,21 @@ const SUPPLIER_KEY = 'hoa-don-china-suppliers'
 const DEBT_ENTRY_KEY = 'hoa-don-supplier-debt-entries'
 
 export function useSupplierPayments() {
-  const [payments, setPayments] = useLocalStorage<SupplierPayment[]>(PAYMENT_KEY, [])
+  const [ledger, setPayments] = useLocalStorage<SupplierPayment[]>(PAYMENT_KEY, [])
   const [suppliers, setSuppliers] = useLocalStorage<ChinaSupplier[]>(SUPPLIER_KEY, [])
   const [debtEntries, setDebtEntries] = useLocalStorage<SupplierDebtEntry[]>(DEBT_ENTRY_KEY, [])
+
+  const payments = ledger.filter(entry => entry.kind !== 'investment')
+  const investment = ledger.find(entry => entry.paymentId === 'ncc-investment-capital')?.investmentAmount ?? 0
+  const setInvestment = useCallback((amount: number) => {
+    if (!Number.isFinite(amount) || amount < 0) throw new Error('Tiền đầu tư phải là số không âm')
+    setPayments(previous => {
+      const existing = previous.find(entry => entry.paymentId === 'ncc-investment-capital')
+      // amount stays zero so older clients do not mistake capital for a payout.
+      const entry: SupplierPayment = { paymentId: 'ncc-investment-capital', kind: 'investment', amount: 0, investmentAmount: Math.round(amount), paymentDate: new Date().toISOString().slice(0, 10), createdAt: existing?.createdAt ?? new Date().toISOString(), note: 'Tổng tiền đầu tư' }
+      return existing ? previous.map(row => row.paymentId === entry.paymentId ? entry : row) : [...previous, entry]
+    })
+  }, [setPayments])
 
   const addSupplier = useCallback((input: { name: string; exchangeRate: number; openingDebtNdt: number }) => {
     const now = new Date().toISOString()
@@ -41,5 +53,5 @@ export function useSupplierPayments() {
     return entry
   }, [setDebtEntries])
 
-  return { suppliers, payments, debtEntries, addSupplier, addPayment, addDebtEntry, deleteSupplier }
+  return { suppliers, payments, investment, setInvestment, debtEntries, addSupplier, addPayment, addDebtEntry, deleteSupplier }
 }

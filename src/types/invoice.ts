@@ -63,6 +63,9 @@ export interface CustomerDebtTransaction {
 }
 
 export interface SupplierPayment {
+  /** Capital balance shares the synced ledger but is never a supplier payout. */
+  kind?: 'payment' | 'investment'
+  investmentAmount?: number
   paymentId: string
   amount: number
   paymentDate: string
