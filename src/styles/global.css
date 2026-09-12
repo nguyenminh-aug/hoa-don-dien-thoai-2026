@@ -130,3 +130,21 @@ h1, h2, p { margin: 0; } h1 { font-size: 23px; letter-spacing: -0.5px; line-heig
 .customer-contact-form input { min-width: 0; min-height: 32px; padding: 0 8px; border: 1px solid #c9d9ed; border-radius: 6px; font: inherit; font-size: 12px; }
 
 .trash-row { align-items: flex-start; gap: 12px; }.trash-row > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }.trash-row .secondary-button { width: auto; min-width: 100px; margin: 0; padding: 10px; flex-shrink: 0; }
+
+/* Ten-column invoice entry, horizontally scrollable on phones. */
+.invoice-table-hint { margin-bottom: 12px; color: #64748b; font-size: 12px; line-height: 1.5; }
+.invoice-entry-table { min-width: 1160px; table-layout: fixed; }
+.invoice-entry-table th:nth-child(1) { width: 52px; }
+.invoice-entry-table th:nth-child(2) { width: 180px; }
+.invoice-entry-table th:nth-child(3) { width: 76px; }
+.invoice-entry-table th:nth-child(4) { width: 66px; }
+.invoice-entry-table th:nth-child(5) { width: 88px; }
+.invoice-entry-table th:nth-child(6) { width: 118px; }
+.invoice-entry-table th:nth-child(7) { width: 110px; }
+.invoice-entry-table th:nth-child(8) { width: 118px; }
+.invoice-entry-table th:nth-child(9), .invoice-entry-table th:nth-child(10) { width: 140px; }
+.invoice-entry-table td:first-child, .invoice-entry-table th:first-child { position: sticky; left: 0; z-index: 1; background: #f5f8fc; border-right: 1px solid #dbe4ef; }
+.invoice-entry-table .table-delete { margin: 4px auto 0; }
+.invoice-entry-table input, .invoice-entry-table select { min-height: 44px; font-size: 16px; }
+.invoice-entry-table tbody tr:nth-child(even) { background: #f8fafc; }
+.invoice-table-deposit { margin-top: 18px; padding-top: 16px; border-top: 1px solid #dbe4ef; }

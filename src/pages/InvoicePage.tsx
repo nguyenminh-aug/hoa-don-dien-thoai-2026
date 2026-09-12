@@ -197,9 +197,11 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
           <span className="count-pill">{items.length}</span>
         </div>
 
-        <div className="invoice-items-compact">
-          <div>
-            <div>{items.map((item, index) => (
+        <p className="invoice-table-hint" id="invoice-table-help">Vuốt ngang để nhập đủ 10 cột. Phụ phí, giá bán và thành tiền tính bằng VNĐ.</p>
+        <div className="invoice-table-scroll" role="region" aria-label="Bảng mặt hàng" aria-describedby="invoice-table-help" tabIndex={0}>
+          <table className="invoice-table invoice-entry-table">
+            <thead><tr>{['STT', 'Mã hàng', 'Loại', 'SL', 'Nhập giá', 'Giá gốc', 'Nguồn', 'Phụ phí', 'Đơn giá bán', 'Thành tiền'].map(title => <th key={title} scope="col">{title}</th>)}</tr></thead>
+            <tbody>{items.map((item, index) => (
               <InvoiceItemEditor
                 key={item.id}
                 item={item}
@@ -209,18 +211,15 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
                 onChange={updateItem}
                 onRemove={() => removeItem(item.id)}
               />
-            ))}</div>
-          </div>
+            ))}</tbody>
+          </table>
         </div>
 
         <button type="button" className="add-item-btn" onClick={addItem}>
           <Icon name="plus" size={18} />
           Thêm mặt hàng
         </button>
-      </section>
-
-      <section className="form-card">
-        <label className="field">
+        <label className="field invoice-table-deposit">
           <span className="field-label">Tiền đặt cọc (VNĐ)</span>
           <input type="number" min={0} inputMode="numeric" value={deposit || ''} placeholder="0" onChange={(event) => setDeposit(Math.max(0, parseNumber(event.target.value)))} />
           <span className="field-help">Khoản này được lưu thành một giao dịch thanh toán riêng.</span>
