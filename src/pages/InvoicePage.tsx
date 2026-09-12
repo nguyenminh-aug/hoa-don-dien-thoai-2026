@@ -40,7 +40,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
   const [customerId, setCustomerId] = useState<string | null>(null)
   const [invoiceDate, setInvoiceDate] = useState(todayIso())
   const [invoiceCode, setInvoiceCode] = useState(generateInvoiceCode())
-  const [items, setItems] = useState<InvoiceItemDraft[]>([createEmptyItem()])
+  const [items, setItems] = useState<InvoiceItemDraft[]>(() => Array.from({ length: 5 }, createEmptyItem))
   const [deposit, setDeposit] = useState(0)
   const [errors, setErrors] = useState<string[]>([])
   const [successCode, setSuccessCode] = useState<string | null>(null)
@@ -95,7 +95,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
     setCustomerId(null)
     setInvoiceDate(todayIso())
     setInvoiceCode(generateInvoiceCode())
-    setItems([createEmptyItem()])
+    setItems(Array.from({ length: 5 }, createEmptyItem))
     setDeposit(0)
     setErrors([])
   }
@@ -197,7 +197,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
           <span className="count-pill">{items.length}</span>
         </div>
 
-        <p className="invoice-table-hint" id="invoice-table-help">Vuốt ngang để nhập đủ 10 cột. Phụ phí, giá bán và thành tiền tính bằng VNĐ.</p>
+        <p className="invoice-table-hint" id="invoice-table-help">Phụ phí, giá bán và thành tiền tính bằng VNĐ.</p>
         <div className="invoice-table-scroll" role="region" aria-label="Bảng mặt hàng" aria-describedby="invoice-table-help" tabIndex={0}>
           <table className="invoice-table invoice-entry-table">
             <thead><tr>{['STT', 'Mã hàng', 'Loại', 'SL', 'Nhập giá', 'Giá gốc', 'Nguồn', 'Phụ phí', 'Đơn giá bán', 'Thành tiền'].map(title => <th key={title} scope="col">{title}</th>)}</tr></thead>
