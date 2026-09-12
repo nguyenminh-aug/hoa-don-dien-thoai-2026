@@ -9,6 +9,6 @@ export function calculateSupplierCash(invoices: Invoice[], receipts: Payment[], 
   const totalProfit = active.reduce((sum, invoice) => sum + (invoice.profit ?? invoice.subtotal - (invoice.chinaCostTotal || 0) - (invoice.operatingCostTotal || 0) - (invoice.itemOperatingCostTotal || 0)), 0) - operatingExpenses
   const reservedProfit = Math.max(0, Math.round(totalProfit))
   const supplierPaid = payouts.filter(payment => payment.kind !== 'investment').reduce((sum, payment) => sum + payment.amount, 0)
-  const balance = cod + transfer - reservedProfit + investment - supplierPaid
+  const balance = cod + transfer - reservedProfit - investment - supplierPaid
   return { cod, transfer, reservedProfit, supplierPaid, balance, availableCash: Math.max(0, balance) }
 }

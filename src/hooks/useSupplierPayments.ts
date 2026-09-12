@@ -19,7 +19,7 @@ export function useSupplierPayments() {
     setPayments(previous => {
       const existing = previous.find(entry => entry.paymentId === 'ncc-investment-capital')
       // amount stays zero so older clients do not mistake capital for a payout.
-      const entry: SupplierPayment = { paymentId: 'ncc-investment-capital', kind: 'investment', amount: 0, investmentAmount: Math.round(amount), paymentDate: new Date().toISOString().slice(0, 10), createdAt: existing?.createdAt ?? new Date().toISOString(), note: 'Tổng tiền đầu tư' }
+      const entry: SupplierPayment = { paymentId: 'ncc-investment-capital', kind: 'investment', amount: 0, investmentAmount: Math.round(amount), paymentDate: new Date().toISOString().slice(0, 10), createdAt: existing?.createdAt ?? new Date().toISOString(), note: 'Tiền gốc TQ đang đem đầu tư' }
       return existing ? previous.map(row => row.paymentId === entry.paymentId ? entry : row) : [...previous, entry]
     })
   }, [setPayments])
