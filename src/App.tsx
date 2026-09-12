@@ -30,5 +30,5 @@ export default function App() {
   const page = detail?.type === 'customer' ? <CustomerDetailPage customerId={detail.id} onBack={() => setDetail(null)} onOpenInvoice={id => setDetail({ type: 'invoice', id })} />
     : detail?.type === 'invoice' ? <InvoiceDetailPage invoiceId={detail.id} onBack={() => setDetail(null)} />
     : { invoice: <InvoicePage onSaved={id => setDetail({ type: 'invoice', id })} />, customers: <CustomersPage onOpenCustomer={id => setDetail({ type: 'customer', id })} />, inventory: <InventoryPage />, expenses: <OperatingExpensesPage />, suppliers: <SupplierDebtPage />, statistics: <StatisticsPage />, settings: <SettingsPage /> }[activeTab]
-  return <div className="app-shell"><GoogleSheetsSync /><main className="app-content">{page}</main><BottomNavigation activeTab={activeTab} onChange={navigateToTab} /></div>
+  return <div className="app-shell"><GoogleSheetsSync visible={activeTab === 'customers' && detail === null} /><main className="app-content">{page}</main><BottomNavigation activeTab={activeTab} onChange={navigateToTab} /></div>
 }

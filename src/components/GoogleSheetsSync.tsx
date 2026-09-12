@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { googleSheetsUrl, syncMessage, synchronize, useRemoteBackup, exportLocalBackup } from '../utils/googleSheets'
-export function GoogleSheetsSync() {
+export function GoogleSheetsSync({ visible = true }: { visible?: boolean }) {
   const [message, setMessage] = useState(syncMessage())
   useEffect(() => {
     let timer: number | undefined
@@ -13,7 +13,8 @@ export function GoogleSheetsSync() {
     const interval = window.setInterval(() => void synchronize(), 30000)
     return () => { window.clearTimeout(timer); window.clearInterval(interval); window.removeEventListener('hoa-don-sync-status', update); window.removeEventListener('hoa-don-user-write', schedule); window.removeEventListener('online', schedule) }
   }, [])
-  if (!googleSheetsUrl().trim()) return null
+  // Keep background synchronization active while hiding controls on other tabs.
+  if (!visible || !googleSheetsUrl().trim()) return null
   return <section className="form-card" aria-label="Đồng bộ dữ liệu"><p role="status">{message || 'Đang tải dữ liệu…'}</p>
     <button className="inline-action" onClick={() => void synchronize()}>Đồng bộ lại</button>{' '}
     <button className="inline-action" onClick={exportLocalBackup}>Tải bản sao trên máy</button>{' '}
