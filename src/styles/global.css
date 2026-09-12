@@ -144,14 +144,15 @@ h1, h2, p { margin: 0; } h1 { font-size: 23px; letter-spacing: -0.5px; line-heig
 .invoice-entry-table th:nth-child(7) { width: 9%; }
 .invoice-entry-table th:nth-child(8) { width: 11%; }
 .invoice-entry-table th:nth-child(9), .invoice-entry-table th:nth-child(10) { width: 14%; }
-.invoice-entry-table td { padding: 5px 1px; border-right: 1px solid #e7edf5; }
+.invoice-entry-table td { padding: 5px 1px; border-right: 1px solid #e7edf5; text-align: center; vertical-align: middle; }
 .invoice-entry-table .invoice-row-number { font-size: 9px; }
 .invoice-entry-table .table-delete { width: 16px; height: 20px; padding: 0; margin: 3px auto 0; border-radius: 3px; }
 .invoice-entry-table .table-delete svg { width: 11px; height: 11px; }
-.invoice-entry-table input, .invoice-entry-table select { width: 100%; min-width: 0; min-height: 32px; padding: 0 1px; border-radius: 3px; font-size: clamp(7px, 1.9vw, 11px); }
-.invoice-entry-table select { appearance: none; text-align: center; }
+.invoice-entry-table input, .invoice-entry-table select { width: 100%; min-width: 0; min-height: 32px; padding: 0 1px; border: 0; border-radius: 0; background: transparent; box-shadow: none; text-align: center; font-size: clamp(7px, 1.9vw, 11px); }
+.invoice-entry-table input:focus, .invoice-entry-table select:focus { box-shadow: none; outline: 1px solid #70adff; outline-offset: -1px; }
+.invoice-entry-table select { appearance: none; text-align: center; text-align-last: center; }
 .invoice-entry-table input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 .invoice-entry-table input::-webkit-inner-spin-button, .invoice-entry-table input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.invoice-entry-table .table-output, .invoice-entry-table .table-total { min-width: 0; font-size: clamp(7px, 1.9vw, 11px); white-space: normal; overflow-wrap: anywhere; }
+.invoice-entry-table .table-output, .invoice-entry-table .table-total { text-align: center; min-width: 0; font-size: clamp(7px, 1.9vw, 11px); white-space: normal; overflow-wrap: anywhere; }
 .invoice-entry-table tbody tr:nth-child(even) { background: #f8fafc; }
 .invoice-table-deposit { margin-top: 18px; padding-top: 16px; border-top: 1px solid #dbe4ef; }
