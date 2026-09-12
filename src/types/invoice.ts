@@ -104,6 +104,7 @@ export interface InventoryProduct {
 }
 
 export interface InvoiceItemDraft {
+  packageNumber?: number
   id: string
   productName: string
   quantity: number

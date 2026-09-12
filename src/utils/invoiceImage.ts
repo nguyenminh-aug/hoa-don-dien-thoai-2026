@@ -1,5 +1,6 @@
 import type { Invoice } from '../types/invoice'
 import { formatVnd } from './money'
+import { groupInvoicePackages } from './invoicePackages'
 
 const WIDTH = 1080
 const PADDING = 64
@@ -20,23 +21,32 @@ function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: num
 export async function createInvoiceImage(invoice: Invoice): Promise<Blob> {
   const measureCanvas = document.createElement('canvas'); const measure = measureCanvas.getContext('2d')!
   measure.font = '600 30px Arial'
-  const itemLines = invoice.items.map(item => wrapText(measure, item.productName, 420))
-  const height = 330 + itemLines.reduce((sum, lines) => sum + Math.max(LINE_HEIGHT, lines.length * 36) + 34, 0) + 398
+  const packages = groupInvoicePackages(invoice.items).map(pack => ({ ...pack, lines: pack.items.map(item => wrapText(measure, item.productName, 330)) }))
+  const height = 240 + packages.reduce((sum, pack) => sum + 190 + pack.lines.reduce((rows, lines) => rows + Math.max(LINE_HEIGHT, lines.length * 36) + 34, 0), 0) + 360
   const canvas = document.createElement('canvas'); canvas.width = WIDTH; canvas.height = height
   const context = canvas.getContext('2d')!; context.fillStyle = '#ffffff'; context.fillRect(0, 0, WIDTH, height)
   context.fillStyle = '#2563eb'; context.fillRect(0, 0, WIDTH, 190)
   context.fillStyle = '#ffffff'; context.font = '700 50px Arial'; context.fillText('HÓA ĐƠN', PADDING, 78)
-  context.font = '400 25px Arial'; context.fillText(`Khách hàng: ${invoice.customerName}`, PADDING, 124)
-  context.fillText(`Ngày: ${invoice.invoiceDate}`, PADDING, 160)
-  context.fillStyle = '#172033'; context.font = '700 30px Arial'; context.fillText('Mặt hàng', PADDING, 250)
-  context.fillText('SL', 600, 250); context.fillText('Đơn giá', 690, 250); context.textAlign = 'right'; context.fillText('Thành tiền', WIDTH - PADDING, 250); context.textAlign = 'left'
-  context.strokeStyle = '#dce3ee'; context.lineWidth = 2; context.beginPath(); context.moveTo(PADDING, 275); context.lineTo(WIDTH-PADDING,275); context.stroke()
-  let y = 320
-  invoice.items.forEach((item, index) => {
-    const lines = itemLines[index]; context.fillStyle = '#172033'; context.font = '600 30px Arial'; lines.forEach((line, lineIndex) => context.fillText(line, PADDING, y + lineIndex * 36))
-    context.font = '400 27px Arial'; context.fillText(String(item.quantity), 610, y); context.fillText(formatVnd(item.unitPrice), 690, y); context.textAlign = 'right'; context.font = '700 27px Arial'; context.fillText(formatVnd(item.subtotal), WIDTH-PADDING, y); context.textAlign = 'left'
-    y += Math.max(LINE_HEIGHT, lines.length * 36) + 34; context.strokeStyle = '#eef2f7'; context.beginPath(); context.moveTo(PADDING,y-16); context.lineTo(WIDTH-PADDING,y-16); context.stroke()
-  })
+  context.font = '400 25px Arial'; context.fillText('Khách hàng: ' + invoice.customerName, PADDING, 124)
+  context.fillText('Ngày: ' + invoice.invoiceDate, PADDING, 160)
+  let y = 240
+  const rightText = (text: string, x: number, top: number) => { context.textAlign = 'right'; context.fillText(text, x, top); context.textAlign = 'left' }
+  for (const pack of packages) {
+    context.fillStyle = '#173b77'; context.font = '700 32px Arial'; context.fillText('Kiện ' + pack.number, PADDING, y); y += 48
+    context.fillStyle = '#475569'; context.font = '700 25px Arial'
+    context.fillText('Mã hàng', PADDING, y); context.fillText('Loại', 425, y); rightText('SL', 560, y); rightText('Giá bán', 770, y); rightText('Thành tiền', WIDTH - PADDING, y); y += 48
+    pack.items.forEach((item, index) => {
+      const lines = pack.lines[index]; context.fillStyle = '#172033'; context.font = '600 30px Arial'
+      lines.forEach((line, lineIndex) => context.fillText(line, PADDING, y + lineIndex * 36))
+      context.font = '400 24px Arial'; context.fillText(item.itemType.toUpperCase(), 425, y); rightText(String(item.quantity), 560, y); rightText(formatVnd(item.unitPrice), 770, y); rightText(formatVnd(item.subtotal), WIDTH - PADDING, y)
+      y += Math.max(LINE_HEIGHT, lines.length * 36) + 34
+      context.strokeStyle = '#eef2f7'; context.beginPath(); context.moveTo(PADDING, y - 40); context.lineTo(WIDTH - PADDING, y - 40); context.stroke()
+    })
+    context.fillStyle = '#173b77'; context.font = '700 27px Arial'
+    context.fillText('Tổng kiện ' + pack.number + ': ' + pack.quantity + ' đôi', PADDING, y)
+    rightText(formatVnd(pack.items.reduce((sum, item) => sum + item.subtotal, 0)), WIDTH - PADDING, y)
+    y += 94
+  }
   const totalQuantity = invoice.items.reduce((sum, item) => sum + item.quantity, 0)
   const isCod = invoice.paymentMethod === 'cod'
   const totalRows = [

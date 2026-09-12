@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '../components/Icon'
 import { InvoiceCustomerSection } from '../components/InvoiceCustomerSection'
-import { InvoiceItemEditor } from '../components/InvoiceItemEditor'
+import { InvoicePackagesEditor } from '../components/InvoicePackagesEditor'
 import { InvoiceTotalsSection } from '../components/InvoiceTotalsSection'
 import { PageHeader } from '../components/PageHeader'
 import { useCustomers } from '../hooks/useCustomers'
@@ -45,7 +45,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
   const [errors, setErrors] = useState<string[]>([])
   const [successCode, setSuccessCode] = useState<string | null>(null)
 
-  const subtotal = useMemo(() => calculateInvoiceTotal(items, settings), [items, settings])
+  const subtotal = useMemo(() => calculateInvoiceTotal(items.filter(item => item.productName.trim()), settings), [items, settings])
   const codAmount = paymentMethod === 'cod' ? Math.max(0, subtotal - deposit) : undefined
 
   const updateItem = (next: InvoiceItemDraft) => {
@@ -59,14 +59,6 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
       }
       return next
     }))
-  }
-
-  const removeItem = (id: string) => {
-    setItems((prev) => (prev.length > 1 ? prev.filter((item) => item.id !== id) : [createEmptyItem()]))
-  }
-
-  const addItem = () => {
-    setItems((prev) => [...prev, createEmptyItem()])
   }
 
   const handleSelectCustomer = (customer: typeof customers[number] | null) => {
@@ -200,28 +192,7 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
           <span className="count-pill">{items.length}</span>
         </div>
 
-        <p className="invoice-table-hint" id="invoice-table-help">Phụ phí, giá bán và thành tiền tính bằng VNĐ.</p>
-        <div className="invoice-table-scroll" role="region" aria-label="Bảng mặt hàng" aria-describedby="invoice-table-help" tabIndex={0}>
-          <table className="invoice-table invoice-entry-table">
-            <thead><tr>{['STT', 'Mã hàng', 'Loại', 'SL', 'ĐV', 'Giá gốc', 'Nguồn', 'Phụ phí', 'Giá bán', 'Thành tiền'].map(title => <th key={title} scope="col">{title}</th>)}</tr></thead>
-            <tbody>{items.map((item, index) => (
-              <InvoiceItemEditor
-                key={item.id}
-                item={item}
-                settings={settings}
-                index={index}
-                isRemovable={items.length > 1}
-                onChange={updateItem}
-                onRemove={() => removeItem(item.id)}
-              />
-            ))}</tbody>
-          </table>
-        </div>
-
-        <button type="button" className="add-item-btn" onClick={addItem}>
-          <Icon name="plus" size={18} />
-          Thêm mặt hàng
-        </button>
+        <InvoicePackagesEditor items={items} settings={settings} onChange={setItems} onItemChange={updateItem} />
         <label className="field invoice-table-deposit">
           <span className="field-label">Tiền đặt cọc (VNĐ)</span>
           <input type="number" min={0} inputMode="numeric" value={deposit || ''} placeholder="0" onChange={(event) => setDeposit(Math.max(0, parseNumber(event.target.value)))} />

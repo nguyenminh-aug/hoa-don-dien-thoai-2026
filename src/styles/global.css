@@ -171,3 +171,6 @@ h1, h2, p { margin: 0; } h1 { font-size: 23px; letter-spacing: -0.5px; line-heig
   .invoice-entry-table .invoice-cell-control input,
   .invoice-entry-table .invoice-cell-control select { position: absolute; top: 0; left: 0; width: 200%; max-width: none; height: 64px; min-height: 64px; margin: 0; font-size: 16px; transform: scale(.5); transform-origin: top left; }
 }
+
+.invoice-package { margin-top: 18px; padding-top: 14px; border-top: 2px solid #dbeafe; }
+.invoice-package-total { display: flex; justify-content: space-between; gap: 12px; margin: 12px 0; padding: 10px; background: #eff6ff; color: #173b77; font-size: 13px; border-radius: 6px; }
