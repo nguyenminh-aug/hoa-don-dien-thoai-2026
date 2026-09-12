@@ -156,3 +156,9 @@ h1, h2, p { margin: 0; } h1 { font-size: 23px; letter-spacing: -0.5px; line-heig
 .invoice-entry-table .table-output, .invoice-entry-table .table-total { text-align: center; min-width: 0; font-size: clamp(7px, 1.9vw, 11px); white-space: normal; overflow-wrap: anywhere; }
 .invoice-entry-table tbody tr:nth-child(even) { background: #f8fafc; }
 .invoice-table-deposit { margin-top: 18px; padding-top: 16px; border-top: 1px solid #dbe4ef; }
+
+.customer-name-picker { position: relative; min-width: 0; }
+.customer-name-suggestions { position: absolute; top: 100%; left: 0; right: 0; z-index: 10; max-height: 240px; overflow-y: auto; margin-top: 4px; border: 1px solid #dce3ee; border-radius: 10px; background: #fff; box-shadow: 0 8px 20px rgba(23,32,51,.12); }
+.customer-name-suggestions button { display: grid; gap: 4px; width: 100%; min-height: 44px; padding: 10px; border: 0; border-bottom: 1px solid #edf1f7; background: #fff; color: #172033; text-align: left; cursor: pointer; }
+.customer-name-suggestions button:hover, .customer-name-suggestions button:focus-visible { background: #eef4ff; }
+.customer-name-suggestions span { color: #64748b; font-size: 11px; overflow-wrap: anywhere; }

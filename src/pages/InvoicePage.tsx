@@ -168,7 +168,10 @@ export function InvoicePage({ onSaved }: InvoicePageProps) {
         paymentMethod={paymentMethod}
         selectedCustomerId={customerId}
         customers={customers}
-        onNameChange={setCustomerName}
+        onNameChange={value => {
+          if (customerId) { setCustomerId(null); setCustomerPhone(''); setCustomerAddress('') }
+          setCustomerName(value)
+        }}
         onPhoneChange={setCustomerPhone}
         onAddressChange={setCustomerAddress}
         onPaymentMethodChange={setPaymentMethod}
